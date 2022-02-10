@@ -1,0 +1,33 @@
+[user]
+	email = kongjun18@outlook.com
+	name = Kong Jun
+	signingkey = 1BB69B7906E8E8304DE7EF75D1DA9E75789648BA
+[core]
+	editor = nvim
+	quotepath = false
+	autocrlf = input
+[merge]
+	tool = nvim
+	prompt = false
+	conflictStyle = diff3
+[pull]
+	ff = only
+[init]
+	defaultBranch = main
+[credential]
+	helper = store
+[commit]
+	verbose = true
+	gpgsign = true
+# submodule configuration
+[diff]
+	submodule = log
+[status]
+	submodulesummary = 1
+[push]
+	recurseSubmodules = check
+[alias]
+	s = status
+	la = log --pretty=oneline --all --graph 
+	ru = status -s | grep '^??' | awk '{print $2}' | xargs rm -r
+	aa = add -A
