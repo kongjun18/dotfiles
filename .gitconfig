@@ -28,6 +28,7 @@
 	recurseSubmodules = check
 [alias]
 	s = status
-	la = log --pretty=oneline --all --graph 
-	ru = status -s | grep '^??' | awk '{print $2}' | xargs rm -r
+	la = log --pretty=oneline --all --graph
 	aa = add -A
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
