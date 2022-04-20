@@ -2306,6 +2306,7 @@ set python print-stack full
 
 python Dashboard.start()
 
+dashboard -style syntax_highlighting 'autumn'
 # Customed commands ------------------------------------------------------------
 
 set $DASHBOARD_LAYOUT = 1
