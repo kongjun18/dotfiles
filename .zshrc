@@ -57,9 +57,18 @@ export GOPATH=~/go
 export EDITOR="nvim"
 export PATH=${PATH}:/usr/local/go/bin:~/.local/bin:~/go/bin
 # Load xmake profile
-[[ -s "$HOME/.xmake/profile" ]] && source "$HOME/.xmake/profile"
-# z.lua configuration
-eval "$(lua /usr/local/src/z.lua/z.lua --init zsh)"
+Z_LUA_PATH="${HOME}/.local/z.lua"
+[[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
+# Load z.lua profile
+if [[ ! -d "${Z_LUA_PATH}" ]]; then
+	git clone --depth 1 https://github.com/skywind3000/z.lua.git ~/.local/z.lua
+fi
+if [[ -d "${Z_LUA_PATH}" ]] && type 'lua' &> /dev/null; then
+	eval "$(lua /usr/local/src/z.lua/z.lua --init zsh)"
+else
+	alias z="echo -e '\e[1;31mz.lua is not available\e[0m' > /dev/stderr"
+fi
+unset Z_LUA_PATH
 
 ############################
 #           Alias          #
