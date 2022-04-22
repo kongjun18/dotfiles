@@ -54,6 +54,8 @@ ZVM_VI_EDITOR="nvim"
 #       Environment        #
 ############################
 export GOPATH=~/go
+export GO111MODULE=on
+export GOPROXY=https://goproxy.cn
 export EDITOR="nvim"
 export PATH=${PATH}:/usr/local/go/bin:~/.local/bin:~/go/bin
 # Load xmake profile
