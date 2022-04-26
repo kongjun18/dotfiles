@@ -1,54 +1,58 @@
 # # Exit for non-interactive shell
-[[ $- != *i* ]] && return
+if [[ ${init} -ne 1 ]]; then
+	[[ $- != *i* ]] && return
+fi
 
 ############################
 #     Load zsh plugins     #
 ############################
-if [ ! -d $HOME/.zsh/zinit ]; then
-	git clone --depth 1 https://github.com/zdharma-continuum/zinit.git $HOME/.zsh/zinit
+if [[ ! -d "$HOME/.zsh/zinit" ]]; then
+	git clone --depth 1 https://github.com/zdharma-continuum/zinit.git "$HOME/.zsh/zinit"
 fi
-typeset -A ZINIT=(
-	BIN_DIR  $HOME/.zsh/zinit/bin
-	HOME_DIR $HOME/.zsh/zinit
-	COMPINIT_OPTS -C
-)
-source $HOME/.zsh/zinit/zinit.zsh
+if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
+	typeset -A ZINIT=(
+		BIN_DIR  $HOME/.zsh/zinit/bin
+		HOME_DIR $HOME/.zsh/zinit
+		COMPINIT_OPTS -C
+	)
+	source $HOME/.zsh/zinit/zinit.zsh
 
-# Load zsh plugins
-zinit ice depth"1" wait lucid atload'_zsh_autosuggest_start'
-zinit light zsh-users/zsh-autosuggestions
-zinit ice depth"1"
-zinit light romkatv/powerlevel10k
-zinit ice depth"1" wait"0" lucid
-zinit light zsh-users/zsh-syntax-highlighting
-zinit ice depth"1"
-zinit light jeffreytse/zsh-vi-mode
+	# Load zsh plugins
+	zinit ice depth"1" wait lucid atload'_zsh_autosuggest_start'
+	zinit light zsh-users/zsh-autosuggestions
+	zinit ice depth"1"
+	zinit light romkatv/powerlevel10k
+	zinit ice depth"1" wait"0" lucid
+	zinit light zsh-users/zsh-syntax-highlighting
+	zinit ice depth"1"
+	zinit light jeffreytse/zsh-vi-mode
 
-# zsh-theme-powerlevel9k uses nerdfont
-POWERLEVEL9K_MODE="nerdfont-complete"
-POWERLEVEL9K_PROMPT_ON_NEWLINE=true
-# zsh-theme-powerlevel9k uses nerdfont
-POWERLEVEL9K_MODE="nerdfont-complete"
-# zsh-theme-powerlevel9k adds new line before each prompt
-POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
-# zsh-theme-powerlevel9k prompt prefix: $
-POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX=""
-POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="$ "
-# zsh-theme-powerlevel9k light colorscheme
-POWERLEVEL9K_COLOR_SCHEME='light'
-# zsh-theme-powerlevel9k prompt
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status time)
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(vi_mode host dir)
-# zsh-theme-powerlevel9k vi mode color
-POWERLEVEL9K_VI_MODE_INSERT_FOREGROUND=black
-POWERLEVEL9K_VI_MODE_NORMAL_FOREGROUND=black
-POWERLEVEL9K_VI_MODE_VISUAL_FOREGROUND=black
-POWERLEVEL9K_VI_MODE_INSERT_BACKGROUND=green
-POWERLEVEL9K_VI_MODE_NORMAL_BACKGROUND=blue
-POWERLEVEL9K_VI_MODE_VISUAL_BACKGROUND=yellow
+	# zsh-theme-powerlevel9k uses nerdfont
+	POWERLEVEL9K_MODE="nerdfont-complete"
+	POWERLEVEL9K_PROMPT_ON_NEWLINE=true
+	# zsh-theme-powerlevel9k uses nerdfont
+	POWERLEVEL9K_MODE="nerdfont-complete"
+	# zsh-theme-powerlevel9k adds new line before each prompt
+	POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
+	# zsh-theme-powerlevel9k prompt prefix: $
+	POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX=""
+	POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="$ "
+	# zsh-theme-powerlevel9k light colorscheme
+	POWERLEVEL9K_COLOR_SCHEME='light'
+	# zsh-theme-powerlevel9k prompt
+	POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status time)
+	POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(vi_mode host dir)
+	# zsh-theme-powerlevel9k vi mode color
+	POWERLEVEL9K_VI_MODE_INSERT_FOREGROUND=black
+	POWERLEVEL9K_VI_MODE_NORMAL_FOREGROUND=black
+	POWERLEVEL9K_VI_MODE_VISUAL_FOREGROUND=black
+	POWERLEVEL9K_VI_MODE_INSERT_BACKGROUND=green
+	POWERLEVEL9K_VI_MODE_NORMAL_BACKGROUND=blue
+	POWERLEVEL9K_VI_MODE_VISUAL_BACKGROUND=yellow
 
-# zsh-vi-mode default edit or
-ZVM_VI_EDITOR="nvim"
+	# zsh-vi-mode default edit or
+	ZVM_VI_EDITOR="nvim"
+fi
 
 ############################
 #       Environment        #
