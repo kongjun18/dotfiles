@@ -61,7 +61,7 @@ export GOPATH=~/go
 export GO111MODULE=on
 export GOPROXY=https://goproxy.cn
 export EDITOR="nvim"
-export PATH=${PATH}:/usr/local/go/bin:~/.local/bin:~/go/bin
+export PATH="${HOME}/.zsh/bin:${HOME}/.local/bin:${HOME}/go/bin:${HOME}/.cargo/bin:/usr/local/go/bin:${PATH}"
 # Load xmake profile
 Z_LUA_PATH="${HOME}/.local/z.lua"
 [[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
