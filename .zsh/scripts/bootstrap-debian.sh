@@ -151,7 +151,7 @@ function UserMkdir() {
 
 # Clone and configurate dotfiles git repo
 function InstallDotfiles() {
-  apt-get install -y lua5.1 # For z.lua
+  apt-get update -y && apt-get install -y zsh fzy lua5.1
   if [ -d "$Dotfiles" ]; then
     EchoInfo "${Dotfiles} exists"
     EchoInfo "It is unnessary to clone dotfiles"
@@ -224,7 +224,6 @@ function ConfigureSsh() {
 
 # Change default shell to zsh and install zsh plugins
 function ChangeDefaultShell() {
-  apt-get update -y && apt-get install -y zsh
   usermod -s "$(which zsh)" "${User}" # Run this script in sudo to change shell directly
   zsh -c "export init=1 && source ~/.zshrc && exit" # Install zsh plugins
   EchoInfo "Change default shell to $(which zsh)!"

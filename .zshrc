@@ -22,10 +22,12 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	zinit light zsh-users/zsh-autosuggestions
 	zinit ice depth"1"
 	zinit light romkatv/powerlevel10k
-	zinit ice depth"1" wait"0" lucid
+	zinit ice depth"1" lucid
 	zinit light zsh-users/zsh-syntax-highlighting
 	zinit ice depth"1"
 	zinit light jeffreytse/zsh-vi-mode
+	zinit ice depth"1"
+	zinit light aperezdc/zsh-fzy
 
 	# zsh-theme-powerlevel9k uses nerdfont
 	POWERLEVEL9K_MODE="nerdfont-complete"
@@ -137,4 +139,11 @@ function cpptest() {
 	else
 		mkdir "${dir}" && touch "${dir}/.ccls" && touch "${dir}/${name}.cc" && nvim "${dir}/${name}.cc"
 	fi
+}
+
+############################
+# Key bindings
+############################
+function zvm_after_init() {
+	bindkey '^R' fzy-history-widget
 }
