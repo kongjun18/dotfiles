@@ -73,6 +73,7 @@ if [[ ! -d "${Z_LUA_PATH}" ]]; then
 fi
 if [[ -d "${Z_LUA_PATH}" ]] && type 'lua' &> /dev/null; then
 	eval "$(lua /usr/local/src/z.lua/z.lua --init zsh)"
+	alias zb="z -b"
 else
 	alias z="echo -e '\e[1;31mz.lua is not available\e[0m' > /dev/stderr"
 fi
