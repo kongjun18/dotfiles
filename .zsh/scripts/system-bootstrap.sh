@@ -25,10 +25,11 @@
 #     ./system-bootstrap.sh -s password localhost | tee /tmp/log
 #
 # Notes:
-# - All operations are idempotent.
-# - Tested on Debian 11.3 or later.
+# - Need sudo privilege and will modify global environment.
+# - Tested on Debian 11.3 and Ubuntu 18.04.
 #
 # Author: Kong Jun <kongjun18@outlook.com>
+###############################################################################
 
 #####################################################
 # Script arguments
@@ -39,6 +40,9 @@ User="${User}" # remote machine user
 Password="" # remote account password
 SudoPassword="" # remote sudo password
 BootstrapSh="${HOME}/.zsh/scripts/bootstrap-debian.sh" # installation script
+
+# Preserve HOME and USER environment!!!
+Sudo="sudo --preserve-env={HOME,USER}"
 
 #####################################################
 # Argument parser
@@ -94,7 +98,7 @@ function ParseArgs() {
 #####################################################
 # Utilies
 #####################################################
-function EchoErr() {
+function Fatal() {
   local red='\e[1;31m'
   local reset='\e[0m'
   echo -e "${red}${1}${reset}" > /dev/stderr
@@ -104,7 +108,7 @@ function CheckCmd() {
   local error=0
   for exe in "$@"; do
     if ! type "${exe}" &> /dev/null; then
-      EchoErr "Please install ${exe} or update your path to include the ${exe} executable!"
+      Fatal "Please install ${exe} or update your path to include the ${exe} executable!"
       error=1
     fi
   done
@@ -113,9 +117,9 @@ function CheckCmd() {
   fi
 }
 
-trap 'EchoErr Error in line "${LINENO}' ERR
+trap 'Fatal Error in line "${LINENO}' ERR
 
-function EchoErr() {
+function Fatal() {
   local red='\e[1;31m'
   local reset='\e[0m'
   echo -e "${red}${1}${reset}" > /dev/stderr
@@ -125,7 +129,7 @@ function CheckCmd() {
   local error=0
   for exe in "$@"; do
     if ! type "${exe}" &> /dev/null; then
-      EchoErr "Please install ${exe} or update your path to include the ${exe} executable!"
+      Fatal "Please install ${exe} or update your path to include the ${exe} executable!"
       error=1
     fi
   done
@@ -160,9 +164,9 @@ function main() {
     || [[ -z "${Host}" ]]
   then
     if [[ -n "${SudoPassword}" ]]; then
-      eval "echo ${SudoPassword} | sudo -S --preserve-env={HOME,USER} ${BootstrapSh}"
+      eval "echo ${SudoPassword} | ${Sudo} -S bash ${BootstrapSh}"
     else
-      eval "sudo --preserve-env={HOME,USER} ${BootstrapSh}"
+      eval "${Sudo} bash ${BootstrapSh}"
     fi
     exit
   fi
@@ -174,10 +178,10 @@ function main() {
   CheckCmd "ssh" "ssh-copy-id" "scp" "sshpass"
   if [[ ! -f "${HOME}/.ssh/id_ed25519.pub" ]] || [[ ! -f "${HOME}/.ssh/id_ed25519" ]]
   then
-    EchoErr "Please configure ssh public key"
+    Fatal "Please configure ssh public key"
   fi
   if [[ ! -d "${HOME}/.zsh/scripts" ]]; then
-    EchoErr "Please download kongjun18/dotfiles"
+    Fatal "Please download kongjun18/dotfiles"
   fi
 
   local sshpass=""
@@ -198,7 +202,7 @@ function main() {
   eval "${ssh} ${backup_ssh} || true"
   eval "${scp} -r ~/.ssh/id_ed25519{,.pub} ${User}@${Host}:.ssh/" # Copy local ssh key to remote machine.
   eval "${scp} ${BootstrapSh} ${User}@${Host}:/tmp/${BootstrapSh}"
-  eval "${ssh} 'echo ${SudoPassword} | sudo -S --preserve-env={HOME,USER} bash /tmp/${BootstrapSh}; rm /tmp/${BootstrapSh}'"
+  eval "${ssh} 'echo ${SudoPassword} | ${Sudo} bash /tmp/${BootstrapSh}; rm /tmp/${BootstrapSh}'"
   eval "${ssh} ${restore_ssh} || true"
 }
 

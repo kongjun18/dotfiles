@@ -14,8 +14,12 @@
 # Bootstrap options
 #####################################################
 
+# Time zone
+readonly TimeZone="Asia/Shanghai"
+# Linux open source software mirror
+readonly OpenSourceMirror="mirror.lzu.edu.cn"
 # Neovim-nightly PPA Ubuntu version
-readonly Ubuntu="focal"
+NeovimPPAUbuntuCode="bionic"
 # Neovim-nightly PPA signing key.
 # See https://launchpad.net/~neovim-ppa/+archive/ubuntu/unstable.
 readonly NeovimPpaKey="9DBB0BE9366964F134855E2255F96FCF8231B6DD"
@@ -29,14 +33,14 @@ readonly GolangFile="go1.18.1.linux-amd64.tar.gz"
 #####################################################
 
 # Print error and exit
-function EchoErr() {
+function Fatal() {
   local red='\e[1;31m'
   local reset='\e[0m'
   echo -e "${red}${*}${reset}" > /dev/stderr
   exit 1
 }
 
-function EchoInfo() {
+function Info() {
   local green='\e[1;32m'
   local reset='\e[0m'
   echo -e "${green}${*}${reset}"
@@ -46,7 +50,7 @@ function EchoInfo() {
 function CheckCmd() {
   for exe in "$@"; do
     if ! type "${exe}" &> /dev/null; then
-      EchoErr "Please install ${exe} or update your path to include the ${exe} executable!"
+      Fatal "Please install ${exe} or update your path to include the ${exe} executable!"
     fi
   done
 }
@@ -60,30 +64,74 @@ function ConfigureEnv() {
   fi
 }
 
-function ClearResource() {
+function GracefulExit() {
+  Info "Exiting..."
   set +e
   if [[ ${ResourceCleared} -eq 0 ]]; then
-    rm "/tmp/${GolangFile}"
+    if [[ -d "/tmp/${GolangFile}" ]]; then
+      rm "/tmp/${GolangFile}"
+    fi
     rm -rf /var/lib/apt/lists/*
     apt-get update
   fi
   ResourceCleared=1
   set -e
+  Info "Exited Gracefully"
 }
 
 function HandleErr() {
   if [[ "${#}" -eq 2 ]]; then
-    EchoErr "Encounter error in line ${2}, exit code ${1}"
+    echo "\e[1;31mEncounter error in line ${2}, exit code ${1}\e[0m" > /dev/stderr
   else
-    EchoErr "Encounter error"
+    echo "\e[0mEncounter error\e[0m" > /dev/stderr
   fi
-  EchoErr "Clearing resource"
-  ClearResource
+  Fatal ""  # Trigger GracefulExit()
+}
+
+# Get Linux distribution name.
+# Distribution nane in /etc/os-release: ID=xxxxxx
+function DistrName() {
+  awk -F '=' '$1 ~ /^ID$/ {print $2}' /etc/os-release
 }
 
 function DebianCode() {
-  CheckCmd 'awk'
   awk '{print $2}' /etc/os-release | grep -o '(.*)' | cut -d '(' -f 2 | cut -d ')' -f 1
+}
+
+function UbuntuCode() {
+  awk -F'=' '$1~/UBUNTU_CODENAME/ {print $2}' /etc/os-release
+}
+
+# Generate Debian/Ubuntu /etc/apt/source.list
+function GenerateSourceList() {
+  local codename
+  case "$(DistrName)" in
+    ubuntu|Ubuntu)
+      codename="$(UbuntuCode)"
+      echo -e "deb http://${OpenSourceMirror}/ubuntu/ ${codename} main restricted universe multiverse
+      deb-src http://${OpenSourceMirror}/ubuntu/ ${codename} main restricted universe multiverse
+      deb http://${OpenSourceMirror}/ubuntu/ ${codename}-security main restricted universe multiverse
+      deb-src http://${OpenSourceMirror}/ubuntu/ ${codename}-security main restricted universe multiverse
+      deb http://${OpenSourceMirror}/ubuntu/ ${codename}-updates main restricted universe multiverse
+      deb-src http://${OpenSourceMirror}/ubuntu/ ${codename}-updates main restricted universe multiverse
+      deb http://${OpenSourceMirror}/ubuntu/ ${codename}-backports main restricted universe multiverse
+      deb-src http://${OpenSourceMirror}/ubuntu/ ${codename}-backports main restricted universe multiverse" > /etc/apt/sources.list
+      ;;
+    debian|Debian)
+      codename="$(DebianCode)"
+      echo -e "deb http://${OpenSourceMirror}/debian/ ${codename} main contrib non-free
+      # deb-src http://${OpenSourceMirror}/debian/ ${codename} main contrib non-free
+      deb http://${OpenSourceMirror}/debian/ ${codename}-updates main contrib non-free
+      # deb-src http://${OpenSourceMirror}/debian/ ${codename}-updates main contrib non-free
+      deb http://${OpenSourceMirror}/debian/ ${codename}-backports main contrib non-free
+      # deb-src http://${OpenSourceMirror}/debian/ ${codename}-backports main contrib non-free
+      deb http://${OpenSourceMirror}/debian-security ${codename}-security main contrib non-free
+      # deb-src http://${OpenSourceMirror}/debian-security ${codename}-security main contrib non-free" > /etc/apt/sources.list
+      ;;
+    *)
+      Fatal "Unsupported Platform"
+      ;;
+  esac
 }
 
 function Dotfile() {
@@ -153,11 +201,11 @@ function UserMkdir() {
 function InstallDotfiles() {
   apt-get update -y && apt-get install -y zsh fzy lua5.1
   if [ -d "$Dotfiles" ]; then
-    EchoInfo "${Dotfiles} exists"
-    EchoInfo "It is unnessary to clone dotfiles"
+    Info "${Dotfiles} exists"
+    Info "It is unnessary to clone dotfiles"
   else
     GitClone --bare git@github.com:kongjun18/dotfiles.git "${Dotfiles}" \
-    && RecursiveUserChown "${Dotfiles}"
+      && RecursiveUserChown "${Dotfiles}"
   fi
 
   Dotfile config status.showUntrackedFiles no
@@ -171,30 +219,45 @@ function InstallDotfiles() {
     files+=("${HOME}/${file}")
   done
   if Dotfile checkout; then
-    EchoInfo "Checked out dotfiles.";
+    Info "Checked out dotfiles.";
   else
-    EchoInfo "Backing up pre-existing dot files.";
+    Info "Backing up pre-existing dot files.";
     BackupDotfiles "${files[@]}" && Dotfile checkout --force
   fi
-  EchoInfo "${files[@]}"
+  Info "dotfiles: ${files[*]}"
   UserChown "${files[@]}"
-  EchoInfo "Install kongjun18/dotfiles successfully!"
+
+  Info "Install kongjun18/dotfiles successfully!"
 }
 
+function InstallNvimConfig() {
+  # Install kongjun18/nvim
+  # NOTE: You should install neovim plugins dependencies manualy.
+  if [[ ! -d "${HOME}/.config/nvim" ]]; then
+    GitClone git@github.com:kongjun18/nvim.git ~/.config/nvim \
+      && RecursiveUserChown ~/.config/nvim
+    if [[ -d ~/.local/nvim ]];then
+      RecursiveUserChown ~/.local/nvim
+    fi
+    if [[ -d ~/.cache ]];then
+      RecursiveUserChown ~/.cache
+    fi
+  fi
+}
+
+# Configure time zone to avoid inputting timezone manually when configure tzdata.
+function ConfigureTimeZone() {
+  if [[ ! -e /etc/localtime ]]; then
+    ln -snf /usr/share/zoneinfo/"$TimeZone" /etc/localtime \
+    && echo "$TimeZone" > /etc/timezone
+  fi
+}
+
+# Configure apt and install necessary utilities
 function ConfigureApt() {
-  # Configure apt and install necessary utilities
-  local debian
-  debian="$(DebianCode)"
-  echo -e "deb http://mirror.lzu.edu.cn/debian/ ${debian} main contrib non-free
-# deb-src http://mirror.lzu.edu.cn/debian/ ${debian} main contrib non-free
-deb http://mirror.lzu.edu.cn/debian/ ${debian}-updates main contrib non-free
-# deb-src http://mirror.lzu.edu.cn/debian/ ${debian}-updates main contrib non-free
-deb http://mirror.lzu.edu.cn/debian/ ${debian}-backports main contrib non-free
-# deb-src http://mirror.lzu.edu.cn/debian/ ${debian}-backports main contrib non-free
-deb http://mirror.lzu.edu.cn/debian-security ${debian}-security main contrib non-free
-# deb-src http://mirror.lzu.edu.cn/debian-security ${debian}-security main contrib non-free" > /etc/apt/sources.list \
-  && apt-get update \
-  && apt-get install -y ca-certificates apt-transport-https \
+  GenerateSourceList
+  apt-get update \
+    && apt-get install -y ca-certificates apt-transport-https \
     sudo \
     git \
     gpg \
@@ -202,96 +265,93 @@ deb http://mirror.lzu.edu.cn/debian-security ${debian}-security main contrib non
     sed grep gawk \
     lsb-release \
     expect \
-  && sed -i 's/http/https/g' /etc/apt/sources.list \
-  && apt-get update
-  EchoInfo "Configure apt successfully!"
+    && sed -i 's/http/https/g' /etc/apt/sources.list \
+    && apt-get update
+    Info "Configure apt successfully!"
 }
 
 function ConfigureSsh() {
   if [ ! -e "${HOME}/.ssh/id_ed25519" ]; then
-    EchoErr "There is no ssh key id_ed25519"
+    Fatal "There is no ssh key id_ed25519"
   fi
   apt-get install -y openssh-client openssh-server \
     && eval "$(ssh-agent -s)" \
     && ssh-add ~/.ssh/id_ed25519
-  if [[ ! -d ~/.ssh ]] || ! grep -q 'github' ~/.ssh/known_hosts; then
+  if [[ ! -d ~/.ssh/known_hosts ]]; then
     UserMkdir ~/.ssh
+    touch ~/.ssh/known_hosts && chown "${USER}": ~/.ssh/known_hosts
+  fi
+  if ! grep -q 'github' ~/.ssh/known_hosts; then
     ssh-keyscan github.com >> ~/.ssh/known_hosts
   fi
-
-  EchoInfo "Configure ssh successfully!"
+  Info "Configure ssh successfully!"
 }
 
 # Change default shell to zsh and install zsh plugins
-function ChangeDefaultShell() {
+# NOTE: Run after InstallDotfiles()
+function InstallZsh() {
+  apt-get -y install zsh
   usermod -s "$(which zsh)" "${User}" # Run this script in sudo to change shell directly
-  zsh -c "export init=1 && source ~/.zshrc && exit" # Install zsh plugins
-  EchoInfo "Change default shell to $(which zsh)!"
+  sudo -u "${User}" zsh -c "export init=1 && source ~/.zshrc && exit" # Install zsh plugins
+  Info "Change default shell to $(which zsh)!"
 }
 
 # Install GNU/Linux system utilities
 function InstallUtilies() {
   apt-get install -y tmux net-tools netcat vmtouch sysstat autossh
-  EchoInfo "Install system utilies successfully!"
+  Info "Install system utilies successfully!"
 }
 
 function InstallDocker() {
   # Don't install docker in docker!
   if [[ ${IsDocker} -eq 1 ]]; then
-    EchoInfo "Detected running in docker. Skip docker installation."
+    Info "Detected running in docker. Skip docker installation."
     return 0
   fi
   local docker_repo="https://mirrors.aliyun.com" # Install docker via Alibaba mirror
   CheckCmd 'curl' 'sh'
   if ! type 'docker' &> /dev/null; then
     curl -fsSL "${docker_repo}"/docker-ce/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] ${docker_repo}/docker-ce/linux/debian $(lsb_release -cs) stable" \
-    | tee /etc/apt/sources.list.d/docker.list > /dev/null \
-    && apt-get update  && apt-get install -y docker-ce docker-ce-cli containerd.io
+      && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] ${docker_repo}/docker-ce/linux/debian $(lsb_release -cs) stable" \
+      | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+      && apt-get update  && apt-get install -y docker-ce docker-ce-cli containerd.io
     # Add user to docker group
-    # Ignore error
-    set +e
+    set +e # Ignore error
     /sbin/groupadd 'docker'
     /sbin/usermod -G 'docker' "${User}"
     set -e
   fi
-  EchoInfo "Install docker successfully!"
+  Info "Install docker successfully!"
 }
 
 function InstallGolang() {
-  # Install Golang
   if ! type 'go' &> /dev/null && [[ ! -e '/usr/local/go/bin/go' ]]; then
     apt-get install -y axel tar \
-      && axel -n"$(nproc)" "https://studygolang.com/dl/golang/${GolangFile}" -o "/tmp/${GolangFile}" \
+      && axel -n8 "https://studygolang.com/dl/golang/${GolangFile}" -o "/tmp/${GolangFile}" \
       && tar -xzv -f "/tmp/${GolangFile}" -C /usr/local/ > /dev/null
   fi
-  EchoInfo "Install Golang successfully!"
+  Info "Install Golang successfully!"
 }
 
 # Install neovim-nightly via neovim-nightly ppa
 #
 # NOTE: I am not sure it works in the furture.
 function InstallNeovim() {
+  # Debian: use old ubuntu version.
+  # Ubuntu: use local ubuntu version.
+  local distribution
+  distribution="$(DistrName)"
+  if [[ "${distribution,,}" == "ubuntu" ]]; then
+    NeovimPPAUbuntuCode="$(UbuntuCode)"
+  fi
   if ! type 'nvim' &> /dev/null; then
     apt-get update && apt-get install -y gnupg gpg software-properties-common \
       && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys  "${NeovimPpaKey}"\
-      && echo -e "deb [arch=amd64] https://ppa.launchpadcontent.net/neovim-ppa/unstable/ubuntu ${Ubuntu} main
-deb-src [arch=amd64] https://ppa.launchpadcontent.net/neovim-ppa/unstable/ubuntu ${Ubuntu} main" > /etc/apt/sources.list.d/neovim-ppa.list \
+      && echo -e "deb [arch=amd64] https://ppa.launchpadcontent.net/neovim-ppa/unstable/ubuntu ${NeovimPPAUbuntuCode} main
+          deb-src [arch=amd64] https://ppa.launchpadcontent.net/neovim-ppa/unstable/ubuntu ${NeovimPPAUbuntuCode} main" > /etc/apt/sources.list.d/neovim-ppa.list \
       && apt-get update && apt-get -y install neovim
   fi
-  EchoInfo "Install neovim-nightly successfully!"
-}
-
-# Install kongjun18/nvim
-function InstallNvimConfig() {
-  if [[ ! -d "${HOME}/.config/nvim" ]]; then
-    GitClone git@github.com:kongjun18/nvim.git ~/.config/nvim \
-      && RecursiveUserChown ~/.config/nvim
-      # && ~/.config/nvim/scripts/debian-install.sh
-    [[ -d ~/.local/nvim ]] && RecursiveUserChown ~/.local/nvim
-    [[ -d ~/.cache ]] && RecursiveUserChown ~/.cache
-  fi
-  EchoInfo "Install kongjun18/nvim successfully!"
+  Info "Install neovim-nightly successfully!"
 }
 
 #####################################################
@@ -303,6 +363,7 @@ function main() {
   set -o pipefail
 
   ConfigureEnv
+  ConfigureTimeZone
   ConfigureApt
   ConfigureSsh
 
@@ -312,10 +373,11 @@ function main() {
   InstallNeovim
   InstallNvimConfig
   InstallDotfiles
-  ChangeDefaultShell
+  InstallZsh
+  Info "Finish Installation!!!"
 }
 
 trap 'HandleErr "$?" "$LINENO"' ERR
-trap 'ClearResource' EXIT
+trap 'GracefulExit' EXIT
 
 main
