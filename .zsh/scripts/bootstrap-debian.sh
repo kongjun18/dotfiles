@@ -2,7 +2,9 @@
 #
 # Configure development environment on empty Debian machine.
 #
-# Usage: Executed from upper script.
+# Usages:
+# - Executed from upper script.
+# - sudo --preserve-env={HOME,USER} bash bootstrap-debian.sh
 #
 # Notes:
 # - All operations are idempotent.
@@ -311,8 +313,10 @@ function InstallDocker() {
   local docker_repo="https://mirrors.aliyun.com" # Install docker via Alibaba mirror
   CheckCmd 'curl' 'sh'
   if ! type 'docker' &> /dev/null; then
-    curl -fsSL "${docker_repo}"/docker-ce/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-      && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] ${docker_repo}/docker-ce/linux/debian $(lsb_release -cs) stable" \
+    local distrname
+    distrname="$(DistrName)"
+    curl -fsSL "${docker_repo}"/docker-ce/linux/"${distrname}"/gpg | gpg --dearmor --batch --yes -o /usr/share/keyrings/docker-archive-keyring.gpg \
+      && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] ${docker_repo}/docker-ce/linux/${distrname} $(lsb_release -cs) stable" \
       | tee /etc/apt/sources.list.d/docker.list > /dev/null \
       && apt-get update  && apt-get install -y docker-ce docker-ce-cli containerd.io
     # Add user to docker group
