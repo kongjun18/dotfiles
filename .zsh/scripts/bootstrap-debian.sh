@@ -311,7 +311,7 @@ function InstallDocker() {
     return 0
   fi
   local docker_repo="https://mirrors.aliyun.com" # Install docker via Alibaba mirror
-  CheckCmd 'curl' 'sh'
+  CheckCmd 'curl' 'sh' 'groupadd' 'usermod' 'getent'
   if ! type 'docker' &> /dev/null; then
     local distrname
     distrname="$(DistrName)"
@@ -321,9 +321,12 @@ function InstallDocker() {
       && apt-get update  && apt-get install -y docker-ce docker-ce-cli containerd.io
     # Add user to docker group
     set +e # Ignore error
-    /sbin/groupadd 'docker'
-    /sbin/usermod -G 'docker' "${User}"
+    groupadd 'docker'
+    usermod -aG 'docker' "${User}"
     set -e
+    if ! getent group docker | grep -q "${User}"; then
+      Fatal "Fail to add user ${User} to group docker"
+    fi
   fi
   Info "Install docker successfully!"
 }
