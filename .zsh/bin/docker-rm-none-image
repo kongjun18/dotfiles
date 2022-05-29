@@ -1,0 +1,2 @@
+#!/bin/bash
+docker image ls | awk '{ if ($1 ~ /<none>/) {cmd="docker image rm "$3""; system(cmd)} }'
