@@ -28,6 +28,9 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	zinit light jeffreytse/zsh-vi-mode
 	zinit ice depth"1"
 	zinit light aperezdc/zsh-fzy
+	# git-extras
+	zinit lucid wait'0a' for \
+	as"program" pick"$ZPFX/bin/git-*" src"etc/git-extras-completion.zsh" make"PREFIX=$ZPFX" tj/git-extras
 
 	# zsh-theme-powerlevel9k uses nerdfont
 	POWERLEVEL9K_MODE="nerdfont-complete"
