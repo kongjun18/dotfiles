@@ -6,7 +6,7 @@ python
 
 # License ----------------------------------------------------------------------
 
-# Copyright (c) 2015-2021 Andrea Cardaci <cyrus.and@gmail.com>
+# Copyright (c) 2015-2022 Andrea Cardaci <cyrus.and@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -192,7 +192,7 @@ See the `prompt` attribute. This value is used as a Python format string.''',
 class Beautifier():
 
     def __init__(self, hint, tab_size=4):
-        self.tab_spaces = ' ' * tab_size
+        self.tab_spaces = ' ' * tab_size if tab_size else None
         self.active = False
         if not R.ansi or not R.syntax_highlighting:
             return
@@ -218,8 +218,9 @@ class Beautifier():
             pass
 
     def process(self, source):
-        # convert tabs anyway
-        source = source.replace('\t', self.tab_spaces)
+        # convert tabs if requested
+        if self.tab_spaces:
+            source = source.replace('\t', self.tab_spaces)
         if self.active:
             import pygments
             source = pygments.highlight(source, self.lexer, self.formatter)
@@ -326,6 +327,7 @@ def format_value(value, compact=None):
 def fetch_breakpoints(watchpoints=False, pending=False):
     # fetch breakpoints addresses
     parsed_breakpoints = dict()
+    catch_what_regex = re.compile(r'([^,]+".*")?[^,]*')
     for line in run('info breakpoints').split('\n'):
         # just keep numbered lines
         if not line or not line[0].isdigit():
@@ -341,7 +343,11 @@ def fetch_breakpoints(watchpoints=False, pending=False):
                 address = None if is_multiple or is_pending else int(fields[4], 16)
                 is_enabled = fields[3] == 'y'
                 address_info = address, is_enabled
-                parsed_breakpoints[number] = [address_info], is_pending
+                parsed_breakpoints[number] = [address_info], is_pending, ''
+            elif len(fields) >= 5 and fields[1] == 'catchpoint':
+                # only take before comma, but ignore commas in quotes
+                what = catch_what_regex.search(' '.join(fields[4:]))[0].strip()
+                parsed_breakpoints[number] = [], False, what
             elif len(fields) >= 3 and number in parsed_breakpoints:
                 # add this address to the list of multiple locations
                 address = int(fields[2], 16)
@@ -350,7 +356,7 @@ def fetch_breakpoints(watchpoints=False, pending=False):
                 parsed_breakpoints[number][0].append(address_info)
             else:
                 # watchpoints
-                parsed_breakpoints[number] = [], False
+                parsed_breakpoints[number] = [], False, ''
         except ValueError:
             pass
     # fetch breakpoints from the API and complement with address and source
@@ -361,7 +367,7 @@ def fetch_breakpoints(watchpoints=False, pending=False):
         # skip internal breakpoints
         if gdb_breakpoint.number < 0:
             continue
-        addresses, is_pending = parsed_breakpoints[gdb_breakpoint.number]
+        addresses, is_pending, what = parsed_breakpoints[gdb_breakpoint.number]
         is_pending = getattr(gdb_breakpoint, 'pending', is_pending)
         if not pending and is_pending:
             continue
@@ -378,6 +384,7 @@ def fetch_breakpoints(watchpoints=False, pending=False):
         breakpoint['temporary'] = gdb_breakpoint.temporary
         breakpoint['hit_count'] = gdb_breakpoint.hit_count
         breakpoint['pending'] = is_pending
+        breakpoint['what'] = what
         # add addresses and source information
         breakpoint['addresses'] = []
         for address, is_enabled in addresses:
@@ -1159,7 +1166,10 @@ class Source(Dashboard.Module):
         self.offset = 0
 
     def label(self):
-        return 'Source'
+        label = 'Source'
+        if self.show_path and self.file_name:
+            label += ': {}'.format(self.file_name)
+        return label
 
     def lines(self, term_width, term_height, style_changed):
         # skip if the current thread is not stopped
@@ -1169,6 +1179,7 @@ class Source(Dashboard.Module):
         sal = gdb.selected_frame().find_sal()
         current_line = sal.line
         if current_line == 0:
+            self.file_name = None
             return []
         # try to lookup the source file
         candidates = [
@@ -1285,6 +1296,12 @@ A value of 0 uses the whole height.''',
                 'type': int,
                 'check': check_gt_zero
             },
+            'path': {
+                'doc': 'Path visibility flag in the module label.',
+                'default': False,
+                'name': 'show_path',
+                'type': bool
+            },
             'highlight-line': {
                 'doc': 'Decide whether the whole current line should be highlighted.',
                 'default': False,
@@ -1324,7 +1341,7 @@ The instructions constituting the current statement are marked, if available.'''
             flavor = gdb.parameter('disassembly-flavor')
         except:
             flavor = 'att'  # not always defined (see #36)
-        highlighter = Beautifier(flavor)
+        highlighter = Beautifier(flavor, tab_size=None)
         # fetch the assembly code
         line_info = None
         frame = gdb.selected_frame()  # PC is here
@@ -2204,6 +2221,9 @@ class Expressions(Dashboard.Module):
             match = re.match('^Default output radix for printing of values is (\d+)\.$', message)
             return match.groups()[0] if match else 10  # fallback
 
+# XXX workaround to support BP_BREAKPOINT in older GDB versions
+setattr(gdb, 'BP_CATCHPOINT', getattr(gdb, 'BP_CATCHPOINT', 26))
+
 class Breakpoints(Dashboard.Module):
     '''Display the breakpoints list.'''
 
@@ -2212,7 +2232,8 @@ class Breakpoints(Dashboard.Module):
         gdb.BP_WATCHPOINT: 'watch',
         gdb.BP_HARDWARE_WATCHPOINT: 'write watch',
         gdb.BP_READ_WATCHPOINT: 'read watch',
-        gdb.BP_ACCESS_WATCHPOINT: 'access watch'
+        gdb.BP_ACCESS_WATCHPOINT: 'access watch',
+        gdb.BP_CATCHPOINT: 'catch'
     }
 
     def label(self):
@@ -2262,6 +2283,9 @@ class Breakpoints(Dashboard.Module):
                 # format user location
                 location = breakpoint['location']
                 line += ' for {}'.format(ansi(location, style))
+            elif breakpoint['type'] == gdb.BP_CATCHPOINT:
+                what = breakpoint['what']
+                line += ' {}'.format(ansi(what, style))
             else:
                 # format user expression
                 expression = breakpoint['expression']
@@ -2303,57 +2327,7 @@ set print array-indexes on
 set python print-stack full
 
 # Start ------------------------------------------------------------------------
-
 python Dashboard.start()
-
-dashboard -style syntax_highlighting 'autumn'
-# Customed commands ------------------------------------------------------------
-
-set $DASHBOARD_LAYOUT = 1
-
-define default-layout
-  dashboard -layout assembly breakpoints expressions history memory registers source stack threads variables
-  dashboard source -style height 15
-end
-
-define source-layout
-  dashboard -layout source expressions stack threads variables
-  dashboard source -style height 30
-end
-
-define assembly-layout
-  dashboard -layout source registers assembly memory stack
-  dashboard source -style height 20
-end
-
-define my-assembly-profile
-  set $DASHBOARD_LAYOUT = 2
-  assembly-layout
-end
-
-define my-source-profile
-  set $DASHBOARD_LAYOUT = 1
-  source-layout
-end
-
-define my-default-profile
-  set $DASHBOARD_LAYOUT = 0
-  default-layout
-end
-
-define update-layout
-    if $DASHBOARD_LAYOUT == 1
-        source-layout
-    end
-    if $DASHBOARD_LAYOUT == 2
-        assembly-layout
-    end
-    if $DASHBOARD_LAYOUT == 0
-        default-layout
-    end
-end
-
-update-layout
 
 # File variables ---------------------------------------------------------------
 

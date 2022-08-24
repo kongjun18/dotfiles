@@ -1,0 +1,47 @@
+dashboard -style syntax_highlighting 'autumn'
+
+set $DASHBOARD_LAYOUT = 1
+
+define default-layout
+  dashboard -layout assembly breakpoints expressions history memory registers source stack threads variables
+  dashboard source -style height 15
+end
+
+define source-layout
+  dashboard -layout source expressions stack threads variables
+  dashboard source -style height 30
+end
+
+define assembly-layout
+  dashboard -layout source registers assembly memory stack
+  dashboard source -style height 20
+end
+
+define my-assembly-profile
+  set $DASHBOARD_LAYOUT = 2
+  assembly-layout
+end
+
+define my-source-profile
+  set $DASHBOARD_LAYOUT = 1
+  source-layout
+end
+
+define my-default-profile
+  set $DASHBOARD_LAYOUT = 0
+  default-layout
+end
+
+define update-layout
+    if $DASHBOARD_LAYOUT == 1
+        source-layout
+    end
+    if $DASHBOARD_LAYOUT == 2
+        assembly-layout
+    end
+    if $DASHBOARD_LAYOUT == 0
+        default-layout
+    end
+end
+
+update-layout

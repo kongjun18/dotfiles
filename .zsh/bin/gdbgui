@@ -1,0 +1,2 @@
+#!/bin/sh
+~/.local/bin/gdbgui --gdb-cmd "gdb -ex 'dashboard -enabled off'" "$@"
