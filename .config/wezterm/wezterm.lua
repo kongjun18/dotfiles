@@ -1,6 +1,7 @@
 local wezterm = require("wezterm")
 local action = wezterm.action
 
+local wayland_font_size_offset = os.getenv("WAYLAND_DISPLAY") and 6 or 0
 return {
 	use_fancy_tab_bar = false,
 	tab_bar_at_bottom = true,
@@ -11,66 +12,13 @@ return {
 		top = 5,
 		bottom = 5,
 	},
-	ssh_domains = {
-		{
-			name = "megvii",
-			remote_address = "megvii",
-			username = "kongjun",
-		},
-	},
 	color_scheme = "dayfox", -- Dayfox color scheme
 	font = wezterm.font("JetBrains Mono"), -- Built in JetBrains Mono
-	font_size = 13,
+	font_size = 14 + wayland_font_size_offset,
 	use_ime = true, -- Use Chinese input method
 	harfbuzz_features = { "zero" }, -- Distinguish 0 and o
 	use_dead_keys = false, -- disable dead key for Vim
 	hide_tab_bar_if_only_one_tab = true,
-	hyperlink_rules = {
-		-- Linkify things that look like URLs and the host has a TLD name.
-		-- Compiled-in default. Used if you don't specify any hyperlink_rules.
-		{
-			regex = "\\b\\w+://[\\w.-]+\\.[a-z]{2,15}\\S*\\b",
-			format = "$0",
-		},
-
-		-- linkify email addresses
-		-- Compiled-in default. Used if you don't specify any hyperlink_rules.
-		{
-			regex = [[\b\w+@[\w-]+(\.[\w-]+)+\b]],
-			format = "mailto:$0",
-		},
-
-		-- file:// URI
-		-- Compiled-in default. Used if you don't specify any hyperlink_rules.
-		{
-			regex = [[\bfile://\S*\b]],
-			format = "$0",
-		},
-
-		-- Linkify things that look like URLs with numeric addresses as hosts.
-		-- E.g. http://127.0.0.1:8000 for a local development server,
-		-- or http://192.168.1.1 for the web interface of many routers.
-		{
-			regex = [[\b\w+://(?:[\d]{1,3}\.){3}[\d]{1,3}\S*\b]],
-			format = "$0",
-		},
-
-		-- Make task numbers clickable
-		-- The first matched regex group is captured in $1.
-		{
-			regex = [[\b[tT](\d+)\b]],
-			format = "https://example.com/tasks/?t=$1",
-		},
-
-		-- Make username/project paths clickable. This implies paths like the following are for GitHub.
-		-- ( "nvim-treesitter/nvim-treesitter" | wbthomason/packer.nvim | wez/wezterm | "wez/wezterm.git" )
-		-- As long as a full URL hyperlink regex exists above this it should not match a full URL to
-		-- GitHub or GitLab / BitBucket (i.e. https://gitlab.com/user/project.git is still a whole clickable URL)
-		{
-			regex = [[["]?([\w\d]{1}[-\w\d]+)(/){1}([-\w\d\.]+)["]?]],
-			format = "https://www.github.com/$1/$3",
-		},
-	},
 	disable_default_key_bindings = true,
 	keys = {
 		-- Clipboard
