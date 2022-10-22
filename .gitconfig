@@ -3,9 +3,20 @@
 	name = Kong Jun
 	signingkey = 1BB69B7906E8E8304DE7EF75D1DA9E75789648BA
 [core]
+	pager = ~/.bin/delta
 	editor = nvim
 	quotepath = false
 	autocrlf = input
+[interactive]
+    diffFilter = delta --color-only --features=interactive
+[add.interactive]
+	useBuiltin = false # required for git 2.37.0
+[delta]
+	theme = GitHub
+	side-by-side = true
+	line-numbers = true
+	navigate = true    # use n and N to move between diff sections
+	light = true
 [merge]
 	tool = nvim
 	prompt = false
@@ -19,16 +30,29 @@
 [commit]
 	verbose = true
 	gpgsign = true
-# submodule configuration
 [diff]
 	submodule = log
+	colorMoved = default
+[difftool]
+	prompt = false
+	trustExitCode = true
 [status]
 	submodulesummary = 1
 [push]
+	default = simple
 	recurseSubmodules = check
 [alias]
 	s = status
-	la = log --pretty=oneline --all --graph
+	la = log --pretty=oneline --all --graph --decorate
 	aa = add -A
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+	rs = restore
 [url "ssh://git@github.com/"]
 	insteadOf = https://github.com/
+[clean]
+	requireForce = false
+[gc]
+	auto = 0 # see https://donatstudios.com/yagni-git-gc
