@@ -1,4 +1,4 @@
-# # Exit for non-interactive shell
+# Exit for non-interactive shell
 if [[ ${init} -ne 1 ]]; then
 	[[ $- != *i* ]] && return
 fi
@@ -26,14 +26,12 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	zinit light zsh-users/zsh-syntax-highlighting
 	zinit ice depth"1"
 	zinit light jeffreytse/zsh-vi-mode
-	zinit ice depth"1"
-	zinit light aperezdc/zsh-fzy
+	# zinit ice lucid wait"0a" from"gh-r" as"program" atload'eval "$(mcfly init zsh)"'
+	# zinit light cantino/mcfly
 	# git-extras
 	zinit lucid wait'0a' for \
 	as"program" pick"$ZPFX/bin/git-*" src"etc/git-extras-completion.zsh" make"PREFIX=$ZPFX" tj/git-extras
 
-	# zsh-theme-powerlevel9k uses nerdfont
-	POWERLEVEL9K_MODE="nerdfont-complete"
 	POWERLEVEL9K_PROMPT_ON_NEWLINE=true
 	# zsh-theme-powerlevel9k uses nerdfont
 	POWERLEVEL9K_MODE="nerdfont-complete"
@@ -59,31 +57,56 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	ZVM_VI_EDITOR="nvim"
 fi
 
-############################
-#       Environment        #
-############################
-export GOPATH=~/go
+#######################################
+#       Software Configuration        #
+#######################################
+
+# Golang
+export GOPATH=~/.go
+export GOROOT=/usr/local/go
 export GO111MODULE=on
 export GOPROXY=https://goproxy.cn
 export EDITOR="nvim"
+
 # Load xmake profile
 Z_LUA_PATH="${HOME}/.local/z.lua"
+if type lua &> /dev/null; then
+	LUA=lua
+elif type luajit &> /dev/null; then
+	LUA=luajit
+fi
 [[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
-# Load z.lua profile
+
+# Download lua and z.lua
 if [[ ! -d "${Z_LUA_PATH}" ]]; then
 	git clone --depth 1 https://github.com/skywind3000/z.lua.git ~/.local/z.lua
 fi
-if [[ -d "${Z_LUA_PATH}" ]] && type 'lua' &> /dev/null; then
-	eval "$(lua /usr/local/src/z.lua/z.lua --init zsh)"
+if [[ -z "${LUA}" ]]; then
+	mkdir -p ~/.tmp/
+	git clone --depth 1 --branch v2.0.5 https://github.com/LuaJIT/LuaJIT.git ~/.tmp/LuaJIT \
+		&& (cd ~/.tmp/LuaJIT && make && make install PREFIX="${HOME}/.local" && chmod u+x ~/.local/bin/luajit)
+	rm -rf ~/.tmp
+	if type luajit &> /dev/null; then
+		LUA=luajit
+	fi
+fi
+
+# mcfly
+export MCFLY_LIGHT=TRUE     # Light mode
+export MCFLY_KEY_SCHEME=vim # Vim keybind
+export MCFLY_FUZZY=2        # Fuzzy match
+
+############################
+#           Alias          #
+############################
+if [[ -d "${Z_LUA_PATH}" ]] || [[ -n "${LUA}" ]]; then
+	eval "$(${LUA} ${Z_LUA_PATH}/z.lua --init zsh)"
 	alias zb="z -b"
 else
 	alias z="echo -e '\e[1;31mz.lua is not available\e[0m' > /dev/stderr"
 fi
 unset Z_LUA_PATH
 
-############################
-#           Alias          #
-############################
 alias vi="nvim"
 alias tm="tmux"
 alias g="git"
@@ -93,17 +116,32 @@ if [ -x /usr/bin/dircolors ]; then
 	test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 	alias ls="ls --color=auto"
 fi
-[[ "${TERM}" == "xterm-kitty" ]] && alias ssh="kitty +kitten ssh"
+if [[ "${TERM_PROGRAM}" == "WezTerm" ]]; then
+	alias icat="wezterm imgcat"
+fi
 
-############################
-#       Configuration      #
-############################
+# K8S
+alias kcd='kubectl config set-context $(kubectl config current-context) --namespace'
+
+################################
+#       ZSH Configuration      #
+################################
 autoload -U colors && colors
 autoload -U compinit
 compinit
 
-# Enable file color
-eval $(dircolors -b)
+# Completion path
+export fpath=($fpath "${HOME}/.zsh/completion")
+
+# Case-insensitive
+zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*'
+
+# Enable kubernetes completion
+if type kubectl &> /dev/null; then
+	source <(kubectl completion zsh)
+fi
+
+# Enable file color eval $(dircolors -b)
 export ZLSCOLORS="${LS_COLORS}"
 zmodload zsh/complist
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
@@ -127,27 +165,12 @@ setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording en
 setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
 setopt HIST_BEEP                 # Beep when accessing nonexistent history.
 
-############################
-#        Functions         #
-############################
-function git-rm-untracked() {
-	git status -s | grep '^??' | awk '{print $2}' | xargs rm -r
-}
-
-function cpptest() {
-	local name="${1:-cpptest}"
-	local dir="/tmp/${name}"
-	if [ -d "${dir}" ]; then
-		nvim "${dir}/${name}.cc"
-	else
-		mkdir "${dir}" && touch "${dir}/.ccls" && touch "${dir}/${name}.cc" && nvim "${dir}/${name}.cc"
+#######################
+#    Post Init Hook   #
+#######################
+function zvm_after_init() {          # Execute aftar zsh-vi-mode
+	if type mcfly &> /dev/null; then # Load mcfly scripts
+		eval "$(mcfly init zsh)"
 	fi
 }
-
-############################
-# Key bindings
-############################
-function zvm_after_init() {
-	bindkey '^R' fzy-history-widget
-}
-export PATH="${HOME}/.zsh/bin:${HOME}/.local/bin:${GOPATH}/bin:${HOME}/.cargo/bin:/usr/local/go/bin:${PATH}"
+export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin::${GOROOT}/bin:${PATH}"
