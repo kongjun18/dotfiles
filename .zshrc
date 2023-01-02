@@ -122,6 +122,8 @@ if [ -x /usr/bin/dircolors ]; then
 fi
 if [[ "${TERM_PROGRAM}" == "WezTerm" ]]; then
 	alias icat="wezterm imgcat"
+else
+	alias icat="chafa"
 fi
 
 # K8S
