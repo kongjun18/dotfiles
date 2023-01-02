@@ -68,6 +68,9 @@ export GO111MODULE=on
 export GOPROXY=https://goproxy.cn
 export EDITOR="nvim"
 
+# Nodejs
+export NPM_PREFIX=~/.npm # npm local prefix(not used by npm)
+
 # Load xmake profile
 Z_LUA_PATH="${HOME}/.local/z.lua"
 if type lua &> /dev/null; then
@@ -173,4 +176,4 @@ function zvm_after_init() {          # Execute aftar zsh-vi-mode
 		eval "$(mcfly init zsh)"
 	fi
 }
-export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin::${GOROOT}/bin:${PATH}"
+export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin::${GOROOT}/bin:${NPM_PREFIX}/bin:${PATH}"
