@@ -115,6 +115,7 @@ alias tm="tmux"
 alias g="git"
 alias grep="grep  --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}"
 alias dotfiles="git --git-dir=$HOME/.dotfiles --work-tree=$HOME"
+alias diff="diff --color -u"
 if [ -x /usr/bin/dircolors ]; then
 	test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 	alias ls="ls --color=auto"
