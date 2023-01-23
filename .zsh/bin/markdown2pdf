@@ -1,11 +1,21 @@
 #! /bin/bash
 # Install latex on Debian:
 #   sudo apt-get install -y texlive-xetex texlive-latex-extra texlive-lang-arabic
-#   texlive-lang-german texlive-lang-chinese texlive-science texlive-latex-r
+#   texlive-lang-german texlive-lang-chinese texlive-science texlive-fonts-extra
+#
 # TODO:
 # - Add options:
 #   -o, --output
 #   -e, --email
+#
+# NOTE:
+# - 标题：文件名
+# - 分页：
+#   Markdown 中添加
+#   ```{=latex}
+#   \newpage
+#   ```
+
 trap 'rm ${TEMPFILE}' EXIT
 TEMPFILE="$(mktemp)"
 
@@ -16,11 +26,10 @@ function markdown2pdf(){
     fi
     basename="$(basename -s .md "$1")"
     cat << EOF > "${TEMPFILE}"
-title:  ${basename}
 author: "孔俊"
 email: "kongjun18@outlook.com"
 EOF
-    pandoc --pdf-engine=xelatex --metadata-file="${TEMPFILE}" --toc --toc-depth=4 -s -N --listings -V footer_lerft=' ' -V auto_indentifiers=false -V footer-left=" " -V colorlinks=true -V linkcolor=blue -V urlcolor=red -V footnotes-pretty=true -V listings-disable-line-numbers=true -V listings-no-page-break=true -V toc-own-page=true  --template eisvogel -V CJKmainfont="SimSun" "$1" -o "${basename}.pdf"
+    pandoc --pdf-engine=xelatex --metadata-file="${TEMPFILE}" --toc --standalone --toc-depth=4 --number-sections --shift-heading-level-by=-1 --listings -V footnotes-pretty=true -V titlepage=true -V header-right=' ' -V footer_lerft=' ' -V auto_indentifiers=false -V footer-left=" " -V colorlinks=true -V linkcolor=blue -V urlcolor=red -V footnotes-pretty=true -V listings-disable-line-numbers=true -V listings-no-page-break=true -V toc-own-page=true  --template eisvogel -V CJKmainfont="SimSun" "$1" -o "${basename}.pdf"
 }
 
 markdown2pdf "$@"
