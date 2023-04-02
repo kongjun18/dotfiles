@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # Exit for non-interactive shell
 if [[ ${init} -ne 1 ]]; then
 	[[ $- != *i* ]] && return
@@ -31,27 +38,6 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	# git-extras
 	zinit lucid wait'0a' for \
 	as"program" pick"$ZPFX/bin/git-*" src"etc/git-extras-completion.zsh" make"PREFIX=$ZPFX" tj/git-extras
-
-	POWERLEVEL9K_PROMPT_ON_NEWLINE=true
-	# zsh-theme-powerlevel9k uses nerdfont
-	POWERLEVEL9K_MODE="nerdfont-complete"
-	# zsh-theme-powerlevel9k adds new line before each prompt
-	POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
-	# zsh-theme-powerlevel9k prompt prefix: $
-	POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX=""
-	POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="$ "
-	# zsh-theme-powerlevel9k light colorscheme
-	POWERLEVEL9K_COLOR_SCHEME='light'
-	# zsh-theme-powerlevel9k prompt
-	POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status time)
-	POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(vi_mode host dir)
-	# zsh-theme-powerlevel9k vi mode color
-	POWERLEVEL9K_VI_MODE_INSERT_FOREGROUND=black
-	POWERLEVEL9K_VI_MODE_NORMAL_FOREGROUND=black
-	POWERLEVEL9K_VI_MODE_VISUAL_FOREGROUND=black
-	POWERLEVEL9K_VI_MODE_INSERT_BACKGROUND=green
-	POWERLEVEL9K_VI_MODE_NORMAL_BACKGROUND=blue
-	POWERLEVEL9K_VI_MODE_VISUAL_BACKGROUND=yellow
 
 	# zsh-vi-mode default edit or
 	ZVM_VI_EDITOR="nvim"
@@ -180,3 +166,6 @@ function zvm_after_init() {          # Execute aftar zsh-vi-mode
 	fi
 }
 export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin::${GOROOT}/bin:${NPM_PREFIX}/bin:/sbin:${PATH}"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
