@@ -179,4 +179,4 @@ function zvm_after_init() {          # Execute aftar zsh-vi-mode
 		eval "$(mcfly init zsh)"
 	fi
 }
-export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin::${GOROOT}/bin:${NPM_PREFIX}/bin:${PATH}"
+export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin::${GOROOT}/bin:${NPM_PREFIX}/bin:/sbin:${PATH}"
