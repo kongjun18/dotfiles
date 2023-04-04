@@ -108,6 +108,14 @@ local config = {
       { key = "PageDown", mods = "NONE", action = action.CopyMode("PageDown") },
     },
   },
+	mouse_bindings = {
+		-- Avoid <LeftMouse> open url link
+		{
+			event = { Up = { streak = 1, button = "Left" } },
+			mods = "NONE",
+			action = action.CompleteSelection("ClipboardAndPrimarySelection"),
+		},
+	},
 }
 
 -- Use the defaults as a base
