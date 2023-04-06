@@ -109,11 +109,10 @@ local config = {
 		},
 	},
 	mouse_bindings = {
-		-- Avoid <LeftMouse> open url link
 		{
 			event = { Up = { streak = 1, button = "Left" } },
-			mods = "NONE",
-			action = action.CompleteSelection("ClipboardAndPrimarySelection"),
+			mods = "SHIFT",
+			action = action.OpenLinkAtMouseCursor,
 		},
 	},
 }
