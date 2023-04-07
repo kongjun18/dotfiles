@@ -4,4 +4,4 @@ args=()
 for (( i=1; i < $#; ++i)); do
     args+=("${!i}")
 done
-docker run --rm -i hadolint/hadolint hadolint "${args[@]}" - < "$dockerfile"
+docker run --rm -i hadolint/hadolint hadolint "${args[@]}" -
