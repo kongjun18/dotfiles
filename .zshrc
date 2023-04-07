@@ -96,6 +96,7 @@ else
 fi
 unset Z_LUA_PATH
 
+alias yadm="yadm --yadm-repo ~/.local/share/yadm/repo.git"
 alias vi="nvim"
 alias tm="tmux"
 alias g="git"
