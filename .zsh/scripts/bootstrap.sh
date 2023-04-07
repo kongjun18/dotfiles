@@ -18,17 +18,26 @@
 
 # Time zone
 readonly TimeZone="Asia/Shanghai"
+
 # Linux open source software mirror
 readonly OpenSourceMirror="mirror.lzu.edu.cn"
+
+# Git: git@github.com:
+# HTTPS: https://github.com/
+readonly GitHubMirror=git@github.com:
+
+readonly YadmRepo="${HOME}/.local/share/yadm/repo.git"
+
 # Neovim-nightly PPA Ubuntu version
 NeovimPPAUbuntuCode="bionic"
+
 # Neovim-nightly PPA signing key.
 # See https://launchpad.net/~neovim-ppa/+archive/ubuntu/unstable.
 readonly NeovimPpaKey="9DBB0BE9366964F134855E2255F96FCF8231B6DD"
-# Local kongjun18/dotfiles directory
-readonly Dotfiles="${HOME}/.dotfiles"
-readonly DotfilesBackup="${HOME}/.dotfiles-backup"
-readonly GolangFile="go1.18.1.linux-amd64.tar.gz"
+
+readonly GolangFile="go1.20.3.linux-amd64.tar.gz"
+# Standard GOROOT: /usr/local/go
+readonly GOROOT="${HOME}/.goroot"
 
 #####################################################
 # Utilies
@@ -38,14 +47,14 @@ readonly GolangFile="go1.18.1.linux-amd64.tar.gz"
 function Fatal() {
   local red='\e[1;31m'
   local reset='\e[0m'
-  echo -e "${red}${*}${reset}" > /dev/stderr
+  echo -e "${red}ERROR: ${*}${reset}" > /dev/stderr
   exit 1
 }
 
 function Info() {
   local green='\e[1;32m'
   local reset='\e[0m'
-  echo -e "${green}${*}${reset}"
+  echo -e "${green}INFO: ${*}${reset}"
 }
 
 # Exit if cmd not exists
@@ -55,6 +64,11 @@ function CheckCmd() {
       Fatal "Please install ${exe} or update your path to include the ${exe} executable!"
     fi
   done
+}
+
+# Check if a path is in home directory.
+function HomePath() {
+  [[ $(echo "$1" | cut -d '/' -f 2) == "home" ]]
 }
 
 function ConfigureEnv() {
@@ -136,23 +150,6 @@ function GenerateSourceList() {
   esac
 }
 
-function Dotfile() {
-  git --git-dir="${Dotfiles}" --work-tree="$HOME" "$@"
-}
-
-function BackupDotfiles() {
-  for dir in $1; do
-    if [[ -e "${dir}" ]]; then
-      local d
-      d="$(dirname "$dir")"
-      local backup_dir="${DotfilesBackup}/${d}"
-      backup_dir="${backup_dir:1}"
-      UserMkdir "${backup_dir}"
-      echo "Copy $dir to ${backup_dir}/$(basename "$dir")"
-    fi
-  done
-}
-
 # git clone wrapper which inputs "yes" automatically
 function GitClone() {
   CheckCmd 'expect'
@@ -169,7 +166,7 @@ EOF
 # chown wrapper which changes all upper directories' owner/group to ${User}.
 #
 # It don't follow symbol link.
-function UserChown() {
+function UpperUserChown() {
   CheckCmd 'realpath'
   for file in "$@"; do
     file="$(realpath --no-symlinks "${file}")"
@@ -186,65 +183,67 @@ function UserChown() {
 # It don't follow symbol link.
 function RecursiveUserChown() {
   chown -R "${User}:" "$@"
-  UserChown "$@"
+  UpperUserChown "$@"
 }
 
 # mkdir wrapper which create directories whose owner/group is ${User} .
 function UserMkdir() {
   mkdir -p "$@"
-  UserChown "$@"
+  UpperUserChown "$@"
 }
 
 #####################################################
 # Installer
 #####################################################
 
+# NOTE: Old yadm uses 'master' as default branch and stores repo into ~/.config/yadm/repo.git.
+# Thus it is necessary to set flags explicitly.
+yadm="yadm --yadm-repo ${YadmRepo}"
+# yadm clone wrapper which inputs "yes" automatically
+function YadmClone() {
+  CheckCmd 'expect'
+  expect <<EOF
+set timeout 60
+spawn ${yadm} clone $*
+expect {
+  "continue connecting (yes/no" { send "yes\r"; exp_continue }
+  eof
+}
+EOF
+}
+
 # Clone and configurate dotfiles git repo
 function InstallDotfiles() {
-  apt-get update -y && apt-get install -y zsh fzy lua5.1
-  if [ -d "$Dotfiles" ]; then
-    Info "${Dotfiles} exists"
+  apt-get update -y && apt-get install -y zsh fzy lua5.1 yadm
+  ${yadm} config yadm.auto-private-dirs false
+  if [ -d "${YadmRepo}" ]; then
+    Info "Dotfiles exists"
     Info "It is unnessary to clone dotfiles"
+    return 0
   else
-    GitClone --bare git@github.com:kongjun18/dotfiles.git "${Dotfiles}" \
-      && RecursiveUserChown "${Dotfiles}"
+    # All existed files will be stashed. Use 'yadm stash list' to see them.
+    YadmClone -f -b main "${GitHubMirror}kongjun18/dotfiles.git"
   fi
 
-  Dotfile config status.showUntrackedFiles no
-  Dotfile push --set-upstream origin main # Set dotfiles upstream repo
-
-  # Checkout dotfiles and backup pre-existing dotfiles
-  local commited_files
-  commited_files="$(Dotfile ls-tree --full-tree -r --name-only HEAD | xargs)"
-  local files=()
-  for file in ${commited_files}; do
-    files+=("${HOME}/${file}")
+  RecursiveUserChown "${YadmRepo}"
+  for file in $(${yadm} ls-files); do
+      RecursiveUserChown "${file}"
   done
-  if Dotfile checkout; then
-    Info "Checked out dotfiles.";
-  else
-    Info "Backing up pre-existing dot files.";
-    BackupDotfiles "${files[@]}" && Dotfile checkout --force
-  fi
-  Info "dotfiles: ${files[*]}"
-  UserChown "${files[@]}"
 
   Info "Install kongjun18/dotfiles successfully!"
 }
 
 function InstallNvimConfig() {
-  # Install kongjun18/nvim
-  # NOTE: You should install neovim plugins dependencies manualy.
-  if [[ ! -d "${HOME}/.config/nvim" ]]; then
-    GitClone git@github.com:kongjun18/nvim.git ~/.config/nvim \
-      && RecursiveUserChown ~/.config/nvim
-    if [[ -d ~/.local/nvim ]];then
-      RecursiveUserChown ~/.local/nvim
-    fi
-    if [[ -d ~/.cache ]];then
-      RecursiveUserChown ~/.cache
-    fi
+  [[ -d "${HOME}/.config/nvim" ]] && Info "Neovim configuration exists"
+  GitClone "${GitHubMirror}kongjun18/nvim.git" ~/.config/nvim \
+    && RecursiveUserChown ~/.config/nvim
+  if [[ -d ~/.local/nvim ]];then
+    RecursiveUserChown ~/.local/nvim
   fi
+  if [[ -d ~/.cache ]];then
+    RecursiveUserChown ~/.cache
+  fi
+  Info "Install neovim configuration successfully!"
 }
 
 # Configure time zone to avoid inputting timezone manually when configure tzdata.
@@ -292,7 +291,10 @@ function ConfigureSsh() {
 # Change default shell to zsh and install zsh plugins
 # NOTE: Run after InstallDotfiles()
 function InstallZsh() {
-  apt-get -y install zsh
+  type zsh &> /dev/null &&
+  apt-get -y install zsh\
+    build-essential # Some zsh plugins needed to be compiled \
+    bsdmainutils # Required by git-extras
   usermod -s "$(which zsh)" "${User}" # Run this script in sudo to change shell directly
   sudo -u "${User}" zsh -c "export init=1 && source ~/.zshrc && exit" # Install zsh plugins
   Info "Change default shell to $(which zsh)!"
@@ -328,14 +330,27 @@ function InstallDocker() {
       Fatal "Fail to add user ${User} to group docker"
     fi
   fi
+
   Info "Install docker successfully!"
 }
 
 function InstallGolang() {
-  if ! type 'go' &> /dev/null && [[ ! -e '/usr/local/go/bin/go' ]]; then
-    apt-get install -y axel tar \
-      && axel -n8 "https://studygolang.com/dl/golang/${GolangFile}" -o "/tmp/${GolangFile}" \
-      && tar -xzv -f "/tmp/${GolangFile}" -C /usr/local/ > /dev/null
+  set +e
+  if type 'go' &> /dev/null || [[ -e "${GOROOT}" ]]; then
+    local existed="yes"
+  fi
+  set -e
+  if [[ -n "${existed}" ]]; then
+    Info "Go exists."
+    return 0
+  fi
+  apt-get install -y axel tar \
+    && axel -n8 "https://studygolang.com/dl/golang/${GolangFile}" -o "/tmp/${GolangFile}" \
+    && mkdir -p "${GOROOT}" \
+    && tar -xzv -f "/tmp/${GolangFile}" -C "${GOROOT}" > /dev/null
+  # Correct user group
+  if HomePath "$(realpath "${GOROOT}")"; then
+    RecursiveUserChown "${GOROOT}"
   fi
   Info "Install Golang successfully!"
 }
@@ -375,6 +390,7 @@ function main() {
   ConfigureSsh
 
   InstallUtilies
+
   InstallGolang
   InstallDocker
   InstallNeovim

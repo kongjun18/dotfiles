@@ -49,7 +49,7 @@ fi
 
 # Golang
 export GOPATH=~/.go
-export GOROOT=/usr/local/go
+export GOROOT=~/.goroot
 export GO111MODULE=on
 export GOPROXY=https://goproxy.cn
 export EDITOR="nvim"
@@ -100,7 +100,6 @@ alias vi="nvim"
 alias tm="tmux"
 alias g="git"
 alias grep="grep  --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}"
-alias dotfiles="git --git-dir=$HOME/.dotfiles --work-tree=$HOME"
 alias diff="diff --color -u"
 if [ -x /usr/bin/dircolors ]; then
 	test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
