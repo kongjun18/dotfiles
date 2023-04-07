@@ -29,7 +29,7 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	zinit light zsh-users/zsh-autosuggestions
 	zinit ice depth"1"
 	zinit light romkatv/powerlevel10k
-	zinit ice depth"1" lucid
+	zinit ice depth"1" wait lucid src'zsh-syntax-highlighting.zsh'
 	zinit light zsh-users/zsh-syntax-highlighting
 	zinit ice depth"1"
 	zinit light jeffreytse/zsh-vi-mode
