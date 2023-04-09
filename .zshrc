@@ -49,7 +49,7 @@ fi
 
 # Golang
 export GOPATH=~/.go
-export GOROOT=~/.goroot
+export GOROOT=~/.goroot/go
 export GO111MODULE=on
 export GOPROXY=https://goproxy.cn
 export EDITOR="nvim"
@@ -165,7 +165,7 @@ function zvm_after_init() {          # Execute aftar zsh-vi-mode
 		eval "$(mcfly init zsh)"
 	fi
 }
-export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin::${GOROOT}/bin:${NPM_PREFIX}/bin:/sbin:${PATH}"
+export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin:${GOROOT}/bin:${NPM_PREFIX}/bin:/sbin:${PATH}"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
