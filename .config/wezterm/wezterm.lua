@@ -1,7 +1,6 @@
 local wezterm = require("wezterm")
 local action = wezterm.action
 
-local wayland_font_size_offset = os.getenv("WAYLAND_DISPLAY") and 6 or 0
 local config = {
 	use_fancy_tab_bar = false,
 	tab_bar_at_bottom = true,
@@ -14,7 +13,7 @@ local config = {
 	},
 	color_scheme = "dayfox", -- Dayfox color scheme
 	font = wezterm.font("JetBrains Mono"), -- Built in JetBrains Mono
-	font_size = 14 + wayland_font_size_offset,
+  font_size = 14,
 	use_ime = true, -- Use Chinese input method
 	harfbuzz_features = { "zero" }, -- Distinguish 0 and o
 	use_dead_keys = false, -- disable dead key for Vim
@@ -109,6 +108,11 @@ local config = {
 		},
 	},
 	mouse_bindings = {
+		{
+			event = { Up = { streak = 1, button = "Left" } },
+			mods = "NONE",
+			action = action.Nop,
+		},
 		{
 			event = { Up = { streak = 1, button = "Left" } },
 			mods = "SHIFT",
