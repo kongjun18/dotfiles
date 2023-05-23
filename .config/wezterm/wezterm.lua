@@ -2,6 +2,7 @@ local wezterm = require("wezterm")
 local action = wezterm.action
 
 local config = {
+  term = "wezterm",
 	use_fancy_tab_bar = false,
 	tab_bar_at_bottom = true,
 	adjust_window_size_when_changing_font_size = true,
