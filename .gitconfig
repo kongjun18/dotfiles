@@ -57,3 +57,5 @@
 	requireForce = false
 [gc]
 	auto = 0 # see https://donatstudios.com/yagni-git-gc
+[log]
+	date = format:%Y-%m-%d %H:%M:%S
