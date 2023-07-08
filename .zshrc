@@ -52,6 +52,8 @@ export GOPATH=~/.go
 export GOROOT=~/.go/go
 export GO111MODULE=on
 export EDITOR="nvim"
+export MANPAGER='nvim +Man!'
+export MANWIDTH=999
 
 # Nodejs
 export NPM_PREFIX=~/.npm # npm local prefix(not used by npm)
