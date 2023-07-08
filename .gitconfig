@@ -43,7 +43,8 @@
 	recurseSubmodules = check
 [alias]
 	s = status
-	la = log --pretty=oneline --all --graph --decorate
+    a = add
+    la = log --pretty=oneline --all --graph --decorate
 	aa = add -A
 	co = checkout
 	br = branch
