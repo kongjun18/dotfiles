@@ -1,6 +1,8 @@
 local wezterm = require("wezterm")
 local action = wezterm.action
-
+local is_linux = string.find(wezterm.target_triple, "linux")
+local is_darwin = string.find(wezterm.target_triple, "darwin")
+local font_size_offset = is_linux and 0 or is_darwin and 3 or 0
 local config = {
   -- FIXME: term = "wezterm" causes wrong cursor shape
   -- term = "wezterm",
@@ -15,7 +17,7 @@ local config = {
 	},
 	color_scheme = "dayfox", -- Dayfox color scheme
 	font = wezterm.font("JetBrains Mono"), -- Built in JetBrains Mono
-  font_size = 14,
+	  font_size = 14+font_size_offset,
 	use_ime = true, -- Use Chinese input method
 	harfbuzz_features = { "zero" }, -- Distinguish 0 and o
 	use_dead_keys = false, -- disable dead key for Vim
