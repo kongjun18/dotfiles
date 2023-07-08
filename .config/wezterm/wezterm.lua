@@ -135,4 +135,8 @@ table.insert(config.hyperlink_rules, {
 	format = "https://www.github.com/$1/$3",
 })
 
+if is_darwin then
+  table.insert(config.keys, { key = "c", mods = "CMD", action = action.CopyTo("Clipboard") })
+  table.insert(config.keys, { key = "v", mods = "CMD", action = action.PasteFrom("Clipboard") })
+end
 return config
