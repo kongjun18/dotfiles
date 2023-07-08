@@ -59,26 +59,30 @@ export MANWIDTH=999
 export NPM_PREFIX=~/.npm # npm local prefix(not used by npm)
 
 # Load xmake profile
-Z_LUA_PATH="${HOME}/.local/z.lua"
+[[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
+
 if type lua &> /dev/null; then
 	LUA=lua
 elif type luajit &> /dev/null; then
 	LUA=luajit
 fi
-[[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
+if [[ -z "${LUA}" ]]; then
+    # Fail to compile LuaJit on OSX
+    if [[ "$(uname)" == "Linux" ]]; then
+        mkdir -p ~/.tmp/
+        git clone --depth 1 --branch v2.0.5 https://github.com/LuaJIT/LuaJIT.git ~/.tmp/LuaJIT \
+            && (cd ~/.tmp/LuaJIT && make && make install PREFIX="${HOME}/.local" && chmod u+x ~/.local/bin/luajit)
+        rm -rf ~/.tmp
+        if type luajit &> /dev/null; then
+            LUA=luajit
+        fi
+    fi
+fi
 
+Z_LUA_PATH="${HOME}/.local/z.lua"
 # Download lua and z.lua
 if [[ ! -d "${Z_LUA_PATH}" ]]; then
 	git clone --depth 1 https://github.com/skywind3000/z.lua.git ~/.local/z.lua
-fi
-if [[ -z "${LUA}" ]]; then
-	mkdir -p ~/.tmp/
-	git clone --depth 1 --branch v2.0.5 https://github.com/LuaJIT/LuaJIT.git ~/.tmp/LuaJIT \
-		&& (cd ~/.tmp/LuaJIT && make && make install PREFIX="${HOME}/.local" && chmod u+x ~/.local/bin/luajit)
-	rm -rf ~/.tmp
-	if type luajit &> /dev/null; then
-		LUA=luajit
-	fi
 fi
 
 # mcfly
