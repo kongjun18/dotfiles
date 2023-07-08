@@ -51,7 +51,6 @@ fi
 export GOPATH=~/.go
 export GOROOT=~/.go/go
 export GO111MODULE=on
-export GOPROXY=https://goproxy.cn
 export EDITOR="nvim"
 
 # Nodejs
