@@ -51,8 +51,6 @@
 	ci = commit
 	st = status
 	rs = restore
-[url "ssh://git@github.com/"]
-	insteadOf = https://github.com/
 [clean]
 	requireForce = false
 [gc]
