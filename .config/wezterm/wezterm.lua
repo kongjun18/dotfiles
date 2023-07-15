@@ -112,15 +112,17 @@ local config = {
 		},
 	},
 	mouse_bindings = {
-		{
-			event = { Up = { streak = 1, button = "Left" } },
-			mods = "NONE",
-			action = action.Nop,
-		},
+		-- Bind 'Up' event of SHIFT-Click to open hyperlinks
 		{
 			event = { Up = { streak = 1, button = "Left" } },
 			mods = "SHIFT",
 			action = action.OpenLinkAtMouseCursor,
+		},
+		-- Disable the 'Down' event of SHIFT-Click to avoid weird program behaviors
+		{
+			event = { Down = { streak = 1, button = "Left" } },
+			mods = "SHIFT",
+			action = action.Nop,
 		},
 	},
 }
