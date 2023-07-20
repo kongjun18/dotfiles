@@ -167,12 +167,22 @@ setopt HIST_VERIFY               # Don't execute immediately upon history expans
 setopt HIST_BEEP                 # Beep when accessing nonexistent history.
 
 #######################
+#      Bindings       #
+#######################
+function bind_keys() {
+    bindkey '^j' forward-word
+    bindkey '^k' backward-delete-word
+}
+
+#######################
 #    Post Init Hook   #
 #######################
-function zvm_after_init() {          # Execute aftar zsh-vi-mode
-	if type mcfly &> /dev/null; then # Load mcfly scripts
-		eval "$(mcfly init zsh)"
-	fi
+# Execute aftar zsh-vi-mode
+function zvm_after_init() {
+    if exists mcfly; then
+        eval "$(mcfly init zsh)"
+    fi
+    bind_keys
 }
 export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin:${GOROOT}/bin:${NPM_PREFIX}/bin:/sbin:${PATH}"
 
