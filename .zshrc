@@ -11,6 +11,17 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 ############################
+#         Utilities        #
+############################
+function exists() {
+    if command -v $1 &> /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+############################
 #     Load zsh plugins     #
 ############################
 if [[ ! -d "$HOME/.zsh/zinit" ]]; then
@@ -46,7 +57,6 @@ fi
 #######################################
 #       Software Configuration        #
 #######################################
-
 # Golang
 export GOPATH=~/.go
 export GOROOT=~/.go/go
@@ -61,9 +71,9 @@ export NPM_PREFIX=~/.npm # npm local prefix(not used by npm)
 # Load xmake profile
 [[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
 
-if type lua &> /dev/null; then
+if  exists lua; then
 	LUA=lua
-elif type luajit &> /dev/null; then
+elif exists luajit; then
 	LUA=luajit
 fi
 if [[ -z "${LUA}" ]]; then
@@ -73,7 +83,7 @@ if [[ -z "${LUA}" ]]; then
         git clone --depth 1 --branch v2.0.5 https://github.com/LuaJIT/LuaJIT.git ~/.tmp/LuaJIT \
             && (cd ~/.tmp/LuaJIT && make && make install PREFIX="${HOME}/.local" && chmod u+x ~/.local/bin/luajit)
         rm -rf ~/.tmp
-        if type luajit &> /dev/null; then
+        if exists luajit; then
             LUA=luajit
         fi
     fi
@@ -107,7 +117,7 @@ alias tm="tmux"
 alias g="git"
 alias grep="grep  --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}"
 alias diff="diff --color -u"
-if whence dircolors >/dev/null; then
+if exists dircolors; then
   eval "$(dircolors -b)"
   zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
   alias ls='ls --color'
@@ -136,11 +146,6 @@ export fpath=($fpath "${HOME}/.zsh/completion")
 
 # Case-insensitive
 zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*'
-
-# Enable kubernetes completion
-if type kubectl &> /dev/null; then
-	source <(kubectl completion zsh)
-fi
 
 # Enable file color eval $(dircolors -b)
 export ZLSCOLORS="${LS_COLORS}"
@@ -181,6 +186,10 @@ function bind_keys() {
 function zvm_after_init() {
     if exists mcfly; then
         eval "$(mcfly init zsh)"
+    fi
+    # Kubernetes
+    if exists kubectl; then
+        source <(kubectl completion zsh)
     fi
     bind_keys
 }
