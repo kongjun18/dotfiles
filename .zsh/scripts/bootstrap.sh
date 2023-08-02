@@ -24,7 +24,7 @@ readonly OpenSourceMirror="mirror.lzu.edu.cn"
 
 # Git: git@github.com:
 # HTTPS: https://github.com/
-readonly GitHubMirror=git@github.com:
+readonly GitHubMirror=https://github.com/
 
 readonly YadmRepo="${HOME}/.local/share/yadm/repo.git"
 
@@ -35,13 +35,20 @@ NeovimPPAUbuntuCode="bionic"
 # See https://launchpad.net/~neovim-ppa/+archive/ubuntu/unstable.
 readonly NeovimPpaKey="9DBB0BE9366964F134855E2255F96FCF8231B6DD"
 
-readonly GolangFile="go1.20.3.linux-amd64.tar.gz"
+readonly GolangFile="go1.20.5.linux-amd64.tar.gz"
 # Standard GOROOT: /usr/local/go
-readonly GOROOT="${HOME}/.goroot"
+readonly GOROOT="${HOME}/.go/go"
 
 #####################################################
 # Utilies
 #####################################################
+function VersionLessOrEqual() {
+    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+function VersionLess() {
+    [ "$1" = "$2" ] && return 1 || verlte $1 $2
+}
 
 # Print error and exit
 function Fatal() {
@@ -78,6 +85,35 @@ function ConfigureEnv() {
   if [[ -e /.dockerenv ]]; then
     IsDocker=1
   fi
+  unameOut="$(uname -s)"
+  case "${unameOut}" in
+    Linux*)     MACHINE=Linux;;
+    Darwin*)    MACHINE=Mac;;
+    CYGWIN*)    MACHINE=Cygwin;;
+    MINGW*)     MACHINE=MinGw;;
+    MSYS_NT*)   MACHINE=Git;;
+    *)          MACHINE="UNKNOWN:${unameOut}"
+  esac
+  if [[ "${MACHINE}" == "Linux" ]]; then
+    dist="$(awk -F '=' '$1 ~ /^ID$/ {print $2}' /etc/os-release)"
+    case "${dist}" in
+        ubuntu|Ubuntu)
+            LINUXDIST=Ubuntu
+            CODENAME="$(awk -F'=' '$1~/UBUNTU_CODENAME/ {print $2}' /etc/os-release)"
+            VERSION="$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2)"
+            ;;
+        debian|Debian)
+            LINUXDIST=Debian
+            CODENAME="$(awk '{print $2}' /etc/os-release | grep -o '(.*)' | cut -d '(' -f 2 | cut -d ')' -f 1)"
+            VERSION="$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2)"
+            ;;
+        *)             LINUXDIST="UNKNOWN:${dist}"
+    esac
+  fi
+  echo "MACHINE: ${MACHINE}"
+  if [[ "${MACHINE}" == "Linux" ]]; then
+      echo "LINUX DISTRIBUTION: ${LINUXDIST}"
+  fi
 }
 
 function GracefulExit() {
@@ -104,50 +140,35 @@ function HandleErr() {
   Fatal ""  # Trigger GracefulExit()
 }
 
-# Get Linux distribution name.
-# Distribution nane in /etc/os-release: ID=xxxxxx
-function DistrName() {
-  awk -F '=' '$1 ~ /^ID$/ {print $2}' /etc/os-release
-}
-
-function DebianCode() {
-  awk '{print $2}' /etc/os-release | grep -o '(.*)' | cut -d '(' -f 2 | cut -d ')' -f 1
-}
-
-function UbuntuCode() {
-  awk -F'=' '$1~/UBUNTU_CODENAME/ {print $2}' /etc/os-release
-}
-
 # Generate Debian/Ubuntu /etc/apt/source.list
-function GenerateSourceList() {
-  local codename
-  case "$(DistrName)" in
-    ubuntu|Ubuntu)
-      codename="$(UbuntuCode)"
-      echo -e "deb http://${OpenSourceMirror}/ubuntu/ ${codename} main restricted universe multiverse
-      deb-src http://${OpenSourceMirror}/ubuntu/ ${codename} main restricted universe multiverse
-      deb http://${OpenSourceMirror}/ubuntu/ ${codename}-security main restricted universe multiverse
-      deb-src http://${OpenSourceMirror}/ubuntu/ ${codename}-security main restricted universe multiverse
-      deb http://${OpenSourceMirror}/ubuntu/ ${codename}-updates main restricted universe multiverse
-      deb-src http://${OpenSourceMirror}/ubuntu/ ${codename}-updates main restricted universe multiverse
-      deb http://${OpenSourceMirror}/ubuntu/ ${codename}-backports main restricted universe multiverse
-      deb-src http://${OpenSourceMirror}/ubuntu/ ${codename}-backports main restricted universe multiverse" > /etc/apt/sources.list
-      ;;
-    debian|Debian)
-      codename="$(DebianCode)"
-      echo -e "deb http://${OpenSourceMirror}/debian/ ${codename} main contrib non-free
-      # deb-src http://${OpenSourceMirror}/debian/ ${codename} main contrib non-free
-      deb http://${OpenSourceMirror}/debian/ ${codename}-updates main contrib non-free
-      # deb-src http://${OpenSourceMirror}/debian/ ${codename}-updates main contrib non-free
-      deb http://${OpenSourceMirror}/debian/ ${codename}-backports main contrib non-free
-      # deb-src http://${OpenSourceMirror}/debian/ ${codename}-backports main contrib non-free
-      deb http://${OpenSourceMirror}/debian-security ${codename}-security main contrib non-free
-      # deb-src http://${OpenSourceMirror}/debian-security ${codename}-security main contrib non-free" > /etc/apt/sources.list
-      ;;
-    *)
-      Fatal "Unsupported Platform"
-      ;;
-  esac
+function GenerateAPTSourceList() {
+    if [[ "$MACHINE" == "Linux" ]]; then
+        case "${LINUXDIST}" in
+        Ubuntu)
+            echo -e "deb http://${OpenSourceMirror}/ubuntu/ ${CODENAME} main restricted universe multiverse
+            deb-src http://${OpenSourceMirror}/ubuntu/ ${CODENAME} main restricted universe multiverse
+            deb http://${OpenSourceMirror}/ubuntu/ ${CODENAME}-security main restricted universe multiverse
+            deb-src http://${OpenSourceMirror}/ubuntu/ ${CODENAME}-security main restricted universe multiverse
+            deb http://${OpenSourceMirror}/ubuntu/ ${CODENAME}-updates main restricted universe multiverse
+            deb-src http://${OpenSourceMirror}/ubuntu/ ${CODENAME}-updates main restricted universe multiverse
+            deb http://${OpenSourceMirror}/ubuntu/ ${CODENAME}-backports main restricted universe multiverse
+            deb-src http://${OpenSourceMirror}/ubuntu/ ${CODENAME}-backports main restricted universe multiverse" > /etc/apt/sources.list
+            ;;
+        Debian)
+            echo -e "deb http://${OpenSourceMirror}/debian/ ${CODENAME} main contrib non-free
+            # deb-src http://${OpenSourceMirror}/debian/ ${CODENAME} main contrib non-free
+            deb http://${OpenSourceMirror}/debian/ ${CODENAME}-updates main contrib non-free
+            # deb-src http://${OpenSourceMirror}/debian/ ${CODENAME}-updates main contrib non-free
+            deb http://${OpenSourceMirror}/debian/ ${CODENAME}-backports main contrib non-free
+            # deb-src http://${OpenSourceMirror}/debian/ ${CODENAME}-backports main contrib non-free
+            deb http://${OpenSourceMirror}/debian-security ${CODENAME}-security main contrib non-free
+            # deb-src http://${OpenSourceMirror}/debian-security ${CODENAME}-security main contrib non-free" > /etc/apt/sources.list
+            ;;
+        *)
+          Fatal "Unsupported Platform ${LINUXDIST}"
+          ;;
+      esac
+    fi
 }
 
 # git clone wrapper which inputs "yes" automatically
@@ -255,8 +276,7 @@ function ConfigureTimeZone() {
 }
 
 # Configure apt and install necessary utilities
-function ConfigureApt() {
-  GenerateSourceList
+function ConfigureAPT() {
   apt-get update \
     && apt-get install -y ca-certificates apt-transport-https \
     sudo \
@@ -271,7 +291,7 @@ function ConfigureApt() {
     Info "Configure apt successfully!"
 }
 
-function ConfigureSsh() {
+function ConfigureSSH() {
   if [ ! -e "${HOME}/.ssh/id_ed25519" ]; then
     Fatal "There is no ssh key id_ed25519"
   fi
@@ -293,8 +313,10 @@ function ConfigureSsh() {
 function InstallZsh() {
   type zsh &> /dev/null &&
   apt-get -y install zsh\
-    build-essential # Some zsh plugins needed to be compiled \
-    bsdmainutils # Required by git-extras
+    build-essential # Some zsh plugins needed to be compiled
+    if [[ "$MACHINE" == "Linux" ]] && [[ "$LINUXDIST" == "Ubuntu" ]] && VersionLessOrEqual "${VERSION}" 20.04; then
+        apt-get -y install bsdmainutils
+    fi
   usermod -s "$(which zsh)" "${User}" # Run this script in sudo to change shell directly
   sudo -u "${User}" zsh -c "export init=1 && source ~/.zshrc && exit" # Install zsh plugins
   Info "Change default shell to $(which zsh)!"
@@ -358,7 +380,7 @@ function InstallGolang() {
 # Install neovim-nightly via neovim-nightly ppa
 #
 # NOTE: I am not sure it works in the furture.
-function InstallNeovim() {
+function InstallNeovimPPA() {
   # Debian: use old ubuntu version.
   # Ubuntu: use local ubuntu version.
   local distribution
@@ -376,6 +398,13 @@ function InstallNeovim() {
   Info "Install neovim-nightly successfully!"
 }
 
+function InstallNeovim() {
+    apt-get install -y fuse libfuse2 \
+    && mkdir -p ~/.bin \
+    && curl -L https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage -o ~/.bin/nvim \
+    && chmod u+x ~/.bin/nvim
+}
+
 #####################################################
 # Main logic
 #####################################################
@@ -386,13 +415,15 @@ function main() {
 
   ConfigureEnv
   ConfigureTimeZone
-  ConfigureApt
-  ConfigureSsh
+  GenerateAPTSourceList
+  ConfigureAPT
+  # ConfigureSSH
 
   InstallUtilies
 
   InstallGolang
   InstallDocker
+  # InstallNeovimPPA
   InstallNeovim
   InstallNvimConfig
   InstallDotfiles
