@@ -21,6 +21,16 @@ function exists() {
     fi
 }
 
+unameOut="$(uname -s)"
+case "$(uname -s)" in
+    Linux*)     MACHINE=Linux;;
+    Darwin*)    MACHINE=Mac;;
+    CYGWIN*)    MACHINE=Cygwin;;
+    MINGW*)     MACHINE=MinGw;;
+    MSYS_NT*)   MACHINE=Git;;
+    *)          MACHINE="UNKNOWN:${unameOut}"
+esac
+
 ############################
 #     Load zsh plugins     #
 ############################
@@ -78,7 +88,7 @@ elif exists luajit; then
 fi
 if [[ -z "${LUA}" ]]; then
     # Fail to compile LuaJit on OSX
-    if [[ "$(uname)" == "Linux" ]]; then
+    if [[ "${MACHINE}" == "Linux" ]]; then
         mkdir -p ~/.tmp/
         git clone --depth 1 --branch v2.0.5 https://github.com/LuaJIT/LuaJIT.git ~/.tmp/LuaJIT \
             && (cd ~/.tmp/LuaJIT && make && make install PREFIX="${HOME}/.local" && chmod u+x ~/.local/bin/luajit)
@@ -116,7 +126,14 @@ alias vi="nvim"
 alias tm="tmux"
 alias g="git"
 alias grep="grep  --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}"
-alias diff="diff --color -u"
+# diff on Darwin doesn't support --color
+if [[ "${MACHINE}" == "Linux" ]]; then
+    alias diff="diff --color -u"
+elif [[ "${MACHINE}" == "Mac" ]]; then
+    if exists git; then
+        alias diff="git diff --no-index --color -u"
+    fi
+fi
 if exists dircolors; then
   eval "$(dircolors -b)"
   zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
