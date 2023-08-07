@@ -1,7 +1,3 @@
-[user]
-	email = kongjun18@outlook.com
-	name = Kong Jun
-	signingkey = 1BB69B7906E8E8304DE7EF75D1DA9E75789648BA
 [core]
 	pager = ~/.bin/delta
 	editor = nvim
@@ -29,7 +25,6 @@
 	helper = store
 [commit]
 	verbose = true
-	gpgsign = true
 [diff]
 	submodule = log
 	colorMoved = default
