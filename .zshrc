@@ -106,7 +106,6 @@ if [[ ! -d "${Z_LUA_PATH}" ]]; then
 fi
 
 # mcfly
-export MCFLY_LIGHT=TRUE     # Light mode
 export MCFLY_KEY_SCHEME=vim # Vim keybind
 export MCFLY_FUZZY=2        # Fuzzy match
 
