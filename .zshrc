@@ -148,9 +148,6 @@ else
 	alias icat="chafa"
 fi
 
-# K8S
-alias kcd='kubectl config set-context $(kubectl config current-context) --namespace'
-
 ################################
 #       ZSH Configuration      #
 ################################
@@ -203,10 +200,6 @@ function bind_keys() {
 function zvm_after_init() {
     if exists mcfly; then
         eval "$(mcfly init zsh)"
-    fi
-    # Kubernetes
-    if exists kubectl; then
-        source <(kubectl completion zsh)
     fi
     bind_keys
 }
