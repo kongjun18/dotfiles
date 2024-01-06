@@ -122,6 +122,7 @@ unset Z_LUA_PATH
 
 alias yadm="yadm --yadm-repo ~/.local/share/yadm/repo.git"
 alias vi="nvim"
+alias vim="nvim -u NONE"
 alias tm="tmux"
 alias g="git"
 alias grep="grep  --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}"
