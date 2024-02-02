@@ -1,5 +1,7 @@
 [include]
     path = ~/.git_account
+[includeIf "gitdir:~/.config/nvim/"]
+    path = ~/.config/nvim/.gitconfig
 [core]
 	pager = ~/.bin/delta
 	editor = nvim
