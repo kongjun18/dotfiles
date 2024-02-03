@@ -53,37 +53,26 @@ fi
 ###################################
 #       Download Softwares        #
 ###################################
-zinit lucid wait'0a' for \
-    as"program" \
-    src"etc/git-extras-completion.zsh" \
-    make"PREFIX=${ZPFX}" \
-    pick"${ZPFX}/bin/git-*" \
-    tj/git-extras
+zinit light-mode for zdharma-continuum/zinit-annex-bin-gem-node
+zinit as"null" from"gh-r" wait light-mode lucid for \
+        atload'eval "$(mcfly init zsh)"' \
+        sbin"**/mcfly" \
+    cantino/mcfly \
+    sbin"**/delta" @dandavison/delta \
+    sbin"**/rg" @BurntSushi/ripgrep \
+    sbin"**/fd" @sharkdp/fd \
+    sbin"**/tokei" @XAMPPRocky/tokei
+zinit as"null" wait light-mode depth"1" lucid for \
+        src"etc/git-extras-completion.zsh" \
+        make"PREFIX=${ZPFX}" \
+    tj/git-extras \
+        atclone"make && cp --force lua ${ZPFX}/bin/lua" \
+        atpull"%atclone" \
+    lua/lua \
+        atload'eval "$(lua z.lua --init zsh)"' \
+    skywind3000/z.lua
 
-zinit ice lucid wait"0a" \
-    from"gh-r" \
-    as"program" \
-    atload'eval "$(mcfly init zsh)"'
-zinit light cantino/mcfly
-
-zinit ice from"gh-r" as"program"
-zinit light dandavison/delta
-
-zinit ice from"gh-r" as"program"
-zinit light XAMPPRocky/tokei
-
-zinit ice \
-  as"program" \
-  atclone"make && cp --force lua ${ZPFX}/bin/lua" \
-  atpull"%atclone"
-zinit light lua/lua
-
-zinit lucid wait'0a' for \
-  as"program" \
-  atload'eval "$(lua z.lua --init zsh)"' \
-  skywind3000/z.lua
-
-#############################################
+# ###########################################
 #       Powerlevel10k instant prompt        #
 #############################################
 # Should stay close to the top of ~/.zshrc. Initialization code that may
