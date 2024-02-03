@@ -3,13 +3,6 @@ if [[ ${init} -ne 1 ]]; then
 	[[ $- != *i* ]] && return
 fi
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 ############################
 #         Utilities        #
 ############################
@@ -22,7 +15,7 @@ function exists() {
 }
 
 unameOut="$(uname -s)"
-case "$(uname -s)" in
+case "${unameOut}" in
     Linux*)     MACHINE=Linux;;
     Darwin*)    MACHINE=Mac;;
     CYGWIN*)    MACHINE=Cygwin;;
@@ -30,6 +23,7 @@ case "$(uname -s)" in
     MSYS_NT*)   MACHINE=Git;;
     *)          MACHINE="UNKNOWN:${unameOut}"
 esac
+
 
 ############################
 #     Load zsh plugins     #
@@ -64,6 +58,16 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	ZVM_VI_EDITOR="nvim"
 fi
 
+#############################################
+#       Powerlevel10k instant prompt        #
+#############################################
+# Should stay close to the top of ~/.zshrc. Initialization code that may
+# require console input (password prompts, [y/n] confirmations, etc.) must
+# go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 #######################################
 #       Software Configuration        #
 #######################################
@@ -71,6 +75,8 @@ fi
 export GOPATH=~/.go
 export GOROOT=~/.go/go
 export GO111MODULE=on
+
+# Man pages
 export EDITOR="nvim"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
@@ -81,6 +87,9 @@ export NPM_PREFIX=~/.npm # npm local prefix(not used by npm)
 # Load xmake profile
 [[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
 
+# Installs Lua and z.lua
+LUA=""
+Z_LUA_PATH="${HOME}/.zsh/z.lua"
 if  exists lua; then
 	LUA=lua
 elif exists luajit; then
@@ -98,11 +107,8 @@ if [[ -z "${LUA}" ]]; then
         fi
     fi
 fi
-
-Z_LUA_PATH="${HOME}/.local/z.lua"
-# Download lua and z.lua
 if [[ ! -d "${Z_LUA_PATH}" ]]; then
-	git clone --depth 1 https://github.com/skywind3000/z.lua.git ~/.local/z.lua
+	git clone --depth 1 https://github.com/skywind3000/z.lua.git "${Z_LUA_PATH}"
 fi
 
 # mcfly
@@ -112,7 +118,7 @@ export MCFLY_FUZZY=2        # Fuzzy match
 ############################
 #           Alias          #
 ############################
-if [[ -d "${Z_LUA_PATH}" ]] || [[ -n "${LUA}" ]]; then
+if [[ -d "${Z_LUA_PATH}" ]] && [[ -n "${LUA}" ]]; then
 	eval "$(${LUA} ${Z_LUA_PATH}/z.lua --init zsh)"
 	alias zb="z -b"
 else
@@ -185,6 +191,7 @@ setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history 
 setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
 setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
 setopt HIST_BEEP                 # Beep when accessing nonexistent history.
+
 
 #######################
 #      Bindings       #
