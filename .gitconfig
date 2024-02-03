@@ -3,7 +3,7 @@
 [includeIf "gitdir:~/.config/nvim/"]
     path = ~/.config/nvim/.gitconfig
 [core]
-	pager = ~/.bin/delta
+	pager = delta
 	editor = nvim
 	quotepath = false
 	autocrlf = input

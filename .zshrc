@@ -48,15 +48,40 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	zinit light zsh-users/zsh-syntax-highlighting
 	zinit ice depth"1"
 	zinit light jeffreytse/zsh-vi-mode
-	# zinit ice lucid wait"0a" from"gh-r" as"program" atload'eval "$(mcfly init zsh)"'
-	# zinit light cantino/mcfly
-	# git-extras
-	zinit lucid wait'0a' for \
-	as"program" pick"$ZPFX/bin/git-*" src"etc/git-extras-completion.zsh" make"PREFIX=$ZPFX" tj/git-extras
-
-	# zsh-vi-mode default edit or
-	ZVM_VI_EDITOR="nvim"
 fi
+
+###################################
+#       Download Softwares        #
+###################################
+zinit lucid wait'0a' for \
+    as"program" \
+    src"etc/git-extras-completion.zsh" \
+    make"PREFIX=${ZPFX}" \
+    pick"${ZPFX}/bin/git-*" \
+    tj/git-extras
+
+zinit ice lucid wait"0a" \
+    from"gh-r" \
+    as"program" \
+    atload'eval "$(mcfly init zsh)"'
+zinit light cantino/mcfly
+
+zinit ice from"gh-r" as"program"
+zinit light dandavison/delta
+
+zinit ice from"gh-r" as"program"
+zinit light XAMPPRocky/tokei
+
+zinit ice \
+  as"program" \
+  atclone"make && cp --force lua ${ZPFX}/bin/lua" \
+  atpull"%atclone"
+zinit light lua/lua
+
+zinit lucid wait'0a' for \
+  as"program" \
+  atload'eval "$(lua z.lua --init zsh)"' \
+  skywind3000/z.lua
 
 #############################################
 #       Powerlevel10k instant prompt        #
@@ -67,6 +92,11 @@ fi
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
+
+####################################
+#      Plugin Configuration        #
+####################################
+ZVM_VI_EDITOR="nvim" # zsh-vi-mode default editor
 
 #######################################
 #       Software Configuration        #
@@ -87,30 +117,6 @@ export NPM_PREFIX=~/.npm # npm local prefix(not used by npm)
 # Load xmake profile
 [[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
 
-# Installs Lua and z.lua
-LUA=""
-Z_LUA_PATH="${HOME}/.zsh/z.lua"
-if  exists lua; then
-	LUA=lua
-elif exists luajit; then
-	LUA=luajit
-fi
-if [[ -z "${LUA}" ]]; then
-    # Fail to compile LuaJit on OSX
-    if [[ "${MACHINE}" == "Linux" ]]; then
-        mkdir -p ~/.tmp/
-        git clone --depth 1 --branch v2.0.5 https://github.com/LuaJIT/LuaJIT.git ~/.tmp/LuaJIT \
-            && (cd ~/.tmp/LuaJIT && make && make install PREFIX="${HOME}/.local" && chmod u+x ~/.local/bin/luajit)
-        rm -rf ~/.tmp
-        if exists luajit; then
-            LUA=luajit
-        fi
-    fi
-fi
-if [[ ! -d "${Z_LUA_PATH}" ]]; then
-	git clone --depth 1 https://github.com/skywind3000/z.lua.git "${Z_LUA_PATH}"
-fi
-
 # mcfly
 export MCFLY_KEY_SCHEME=vim # Vim keybind
 export MCFLY_FUZZY=2        # Fuzzy match
@@ -118,14 +124,7 @@ export MCFLY_FUZZY=2        # Fuzzy match
 ############################
 #           Alias          #
 ############################
-if [[ -d "${Z_LUA_PATH}" ]] && [[ -n "${LUA}" ]]; then
-	eval "$(${LUA} ${Z_LUA_PATH}/z.lua --init zsh)"
-	alias zb="z -b"
-else
-	alias z="echo -e '\e[1;31mz.lua is not available\e[0m' > /dev/stderr"
-fi
-unset Z_LUA_PATH
-
+alias zb="z -b"
 alias yadm="yadm --yadm-repo ~/.local/share/yadm/repo.git"
 alias vi="nvim"
 alias vim="nvim -u NONE"
