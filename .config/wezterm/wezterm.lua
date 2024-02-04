@@ -4,8 +4,8 @@ local is_linux = string.find(wezterm.target_triple, "linux")
 local is_darwin = string.find(wezterm.target_triple, "darwin")
 local font_size_offset = is_linux and 0 or is_darwin and 3 or 0
 local config = {
-  -- FIXME: term = "wezterm" causes wrong cursor shape
-  -- term = "wezterm",
+	-- FIXME: term = "wezterm" causes wrong cursor shape
+	-- term = "wezterm",
 	use_fancy_tab_bar = false,
 	tab_bar_at_bottom = true,
 	adjust_window_size_when_changing_font_size = true,
@@ -15,9 +15,9 @@ local config = {
 		top = 0,
 		bottom = 0,
 	},
-	color_scheme = "dayfox", -- Dayfox color scheme
+	color_scheme = "nightfox",
 	font = wezterm.font("JetBrains Mono"), -- Built in JetBrains Mono
-	  font_size = 14+font_size_offset,
+	font_size = 14 + font_size_offset,
 	use_ime = true, -- Use Chinese input method
 	harfbuzz_features = { "zero" }, -- Distinguish 0 and o
 	use_dead_keys = false, -- disable dead key for Vim
@@ -138,7 +138,8 @@ table.insert(config.hyperlink_rules, {
 })
 
 if is_darwin then
-  table.insert(config.keys, { key = "c", mods = "CMD", action = action.CopyTo("Clipboard") })
-  table.insert(config.keys, { key = "v", mods = "CMD", action = action.PasteFrom("Clipboard") })
+	table.insert(config.keys, { key = "c", mods = "CMD", action = action.CopyTo("Clipboard") })
+	table.insert(config.keys, { key = "v", mods = "CMD", action = action.PasteFrom("Clipboard") })
 end
+
 return config
