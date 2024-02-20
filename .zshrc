@@ -74,6 +74,7 @@ zinit as"null" wait light-mode depth"1" lucid for \
         atload'eval "$(lua z.lua --init zsh)"' \
     skywind3000/z.lua
 zinit as"program" from"gh-r" wait lucid light-mode for \
+        ver"nightly" \
         pick"*/bin/nvim" \
     neovim/neovim
 
