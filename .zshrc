@@ -74,6 +74,7 @@ zinit as"null" wait light-mode depth"1" lucid for \
         atload'eval "$(lua z.lua --init zsh)"' \
     skywind3000/z.lua
 zinit as"program" from"gh-r" wait lucid light-mode for \
+        nocompletions \
         ver"nightly" \
         pick"*/bin/nvim" \
     neovim/neovim
@@ -122,7 +123,7 @@ export MCFLY_FUZZY=2        # Fuzzy match
 alias zb="z -b"
 alias yadm="yadm --yadm-repo ~/.local/share/yadm/repo.git"
 alias vi="nvim"
-alias vim="nvim -u NONE"
+alias vim="nvim --cmd 'let g:bare_mode=v:true'"
 alias tm="tmux"
 alias g="git"
 alias grep="grep  --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}"
