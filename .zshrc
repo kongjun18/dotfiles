@@ -68,7 +68,7 @@ zinit as"null" wait light-mode depth"1" lucid for \
         src"etc/git-extras-completion.zsh" \
         make"PREFIX=${ZPFX}" \
     tj/git-extras \
-        cloneopts"--branch v5.4" \
+        cloneopts"--branch v5.3" \
         atclone"make && cp --force lua ${ZPFX}/bin/lua" \
         atpull"%atclone" \
     lua/lua \
