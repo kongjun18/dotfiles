@@ -59,7 +59,7 @@ zinit as"null" from"gh-r" wait light-mode lucid for \
         atload'eval "$(mcfly init zsh)"' \
         sbin"**/mcfly" \
     cantino/mcfly \
-    sbin"**/delta" "${pick_musl_on_linux}" @dandavison/delta \
+    sbin"**/delta" ${pick_musl_on_linux} @dandavison/delta \
     sbin"**/rg" @BurntSushi/ripgrep \
     sbin"**/fd" @sharkdp/fd \
     sbin"**/tokei" @XAMPPRocky/tokei \
