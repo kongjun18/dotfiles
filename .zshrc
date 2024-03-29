@@ -120,6 +120,10 @@ export NPM_PREFIX=~/.npm # npm local prefix(not used by npm)
 export MCFLY_KEY_SCHEME=vim # Vim keybind
 export MCFLY_FUZZY=2        # Fuzzy match
 
+# fzf
+# Speedup search
+export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
+
 ############################
 #           Alias          #
 ############################
@@ -204,9 +208,6 @@ function bind_keys() {
 #######################
 # Execute aftar zsh-vi-mode
 function zvm_after_init() {
-    if exists mcfly; then
-        eval "$(mcfly init zsh)"
-    fi
     bind_keys
 }
 export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin:${GOROOT}/bin:${NPM_PREFIX}/bin:/sbin:${PATH}"
