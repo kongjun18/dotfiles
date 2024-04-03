@@ -62,7 +62,7 @@ zinit as"null" from"gh-r" wait light-mode lucid for \
     sbin"**/delta" ${pick_musl_on_linux} @dandavison/delta \
     sbin"**/rg" @BurntSushi/ripgrep \
     sbin"**/fd" @sharkdp/fd \
-    sbin"**/tokei" @XAMPPRocky/tokei \
+    ver"v12.1.2" sbin"**/tokei" @XAMPPRocky/tokei \
     sbin"fzf" @junegunn/fzf
 zinit as"null" wait light-mode depth"1" lucid for \
         src"etc/git-extras-completion.zsh" \
