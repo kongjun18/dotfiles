@@ -63,7 +63,9 @@ zinit as"null" from"gh-r" wait light-mode lucid for \
     sbin"**/rg" @BurntSushi/ripgrep \
     sbin"**/fd" @sharkdp/fd \
     ver"v12.1.2" sbin"**/tokei" @XAMPPRocky/tokei \
-    sbin"fzf" @junegunn/fzf
+    sbin"fzf" @junegunn/fzf \
+    sbin"grpcurl" @fullstorydev/grpcurl \
+    sbin'* -> jq' nocompile @jqlang/jq
 zinit as"null" wait light-mode depth"1" lucid for \
         src"etc/git-extras-completion.zsh" \
         make"PREFIX=${ZPFX}" \
