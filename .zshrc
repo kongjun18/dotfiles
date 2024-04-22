@@ -201,6 +201,7 @@ setopt HIST_BEEP                 # Beep when accessing nonexistent history.
 function bind_keys() {
     bindkey '^j' forward-word
     bindkey '^k' backward-delete-word
+    bindkey '^[[Z' reverse-menu-complete
 }
 
 #######################
@@ -210,6 +211,7 @@ function bind_keys() {
 function zvm_after_init() {
     bind_keys
 }
+
 export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin:${GOROOT}/bin:${NPM_PREFIX}/bin:/sbin:${PATH}"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
