@@ -95,7 +95,7 @@ fi
 ####################################
 #      Plugin Configuration        #
 ####################################
-ZVM_VI_EDITOR="nvim" # zsh-vi-mode default editor
+ZVM_VI_EDITOR="nvim --cmd 'let g:bare_mode=v:true' -c 'set wrap'" # zsh-vi-mode default editor
 
 #######################################
 #       Software Configuration        #
