@@ -217,3 +217,4 @@ export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin:${GO
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+[[ -f ~/.zsh/scripts/setup.sh ]] && source ~/.zsh/scripts/setup.sh
