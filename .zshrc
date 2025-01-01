@@ -83,7 +83,10 @@ zinit as"null" wait light-mode depth"1" lucid for \
         atpull"%atclone" \
     lua/lua \
         atload'eval "$(lua z.lua --init zsh)"' \
-    skywind3000/z.lua
+    skywind3000/z.lua \
+        atclone"./autogen.sh && ./configure && make && cp --force ctags ${ZPFX}/bin/ctags" \
+        atpull"%atclone" \
+    universal-ctags/ctags
 zinit as"program" from"gh-r" wait lucid light-mode for \
         nocompletions \
         ver"nightly" \
