@@ -15,8 +15,13 @@ function exists() {
 }
 
 unameOut="$(uname -s)"
+export MACHINE
+export ARCH
 case "${unameOut}" in
-    Linux*)     MACHINE=Linux;;
+    Linux*)
+        MACHINE=Linux
+        export LINUX_RELEASE="$(cat /etc/os-release | grep '^ID=' | cut -d = -f 2)"
+        ;;
     Darwin*)    MACHINE=Mac;;
     CYGWIN*)    MACHINE=Cygwin;;
     MINGW*)     MACHINE=MinGw;;
@@ -53,6 +58,9 @@ fi
 ###################################
 #       Download Softwares        #
 ###################################
+if ! exists go; then
+    zsh ~/.zsh/scripts/go.sh
+fi
 [[ "${MACHINE}" == "Linux" ]] && pick_musl_on_linux='bpick*musl*'
 zinit light-mode for zdharma-continuum/zinit-annex-bin-gem-node
 zinit as"null" from"gh-r" wait light-mode lucid for \
@@ -104,6 +112,9 @@ ZVM_VI_EDITOR="nvim --cmd 'let g:bare_mode=v:true' -c 'set wrap'" # zsh-vi-mode 
 export GOPATH=~/.go
 export GOROOT=~/.go/go
 export GO111MODULE=on
+if [[ ! -e "$GOROOT/bin/go" ]]; then
+    zsh ~/.zsh/scripts/go.sh
+fi
 
 # Man pages
 export EDITOR="nvim"
