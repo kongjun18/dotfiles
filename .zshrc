@@ -58,8 +58,10 @@ fi
 ###################################
 #       Download Softwares        #
 ###################################
-if ! exists go; then
-    zsh ~/.zsh/scripts/go.sh
+if ! exists gcc; then
+    if [[ "${MACHINE}" == "Linux" ]]; then
+        bash ~/.zsh/scripts/build-essential.sh
+    fi
 fi
 [[ "${MACHINE}" == "Linux" ]] && pick_musl_on_linux='bpick*musl*'
 zinit light-mode for zdharma-continuum/zinit-annex-bin-gem-node
