@@ -1,6 +1,6 @@
 # Exit for non-interactive shell
 if [[ ${init} -ne 1 ]]; then
-	[[ $- != *i* ]] && return
+    [[ $- != *i* ]] && return
 fi
 
 ############################
@@ -45,13 +45,19 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	source $HOME/.zsh/zinit/zinit.zsh
 
 	# Load zsh plugins
-	zinit ice depth"1" wait lucid atload'_zsh_autosuggest_start'
-	zinit light zsh-users/zsh-autosuggestions
+	zinit ice depth"1"
+	zinit light romkatv/zsh-defer
+
+	zsh-defer zinit ice depth"1" wait lucid atload'_zsh_autosuggest_start'
+	zsh-defer zinit light zsh-users/zsh-autosuggestions
+
 	zinit ice depth"1"
 	zinit light romkatv/powerlevel10k
-	zinit ice depth"1" wait lucid src'zsh-syntax-highlighting.zsh'
-	zinit light zsh-users/zsh-syntax-highlighting
-	zinit ice depth"1"
+
+	zsh-defer zinit ice depth"1" wait lucid src'zsh-syntax-highlighting.zsh'
+	zsh-defer zinit light zsh-users/zsh-syntax-highlighting
+
+	zinit ice depth"1" wait lucid
 	zinit light jeffreytse/zsh-vi-mode
 fi
 
@@ -65,7 +71,7 @@ if ! exists gcc; then
 fi
 [[ "${MACHINE}" == "Linux" ]] && pick_musl_on_linux='bpick*musl*'
 zinit light-mode for zdharma-continuum/zinit-annex-bin-gem-node
-zinit as"null" from"gh-r" wait light-mode lucid for \
+zsh-defer zinit as"null" from"gh-r" wait light-mode lucid for \
         atload'eval "$(mcfly init zsh)"' \
         sbin"**/mcfly" \
     cantino/mcfly \
@@ -76,7 +82,7 @@ zinit as"null" from"gh-r" wait light-mode lucid for \
     sbin"fzf" @junegunn/fzf \
     sbin"grpcurl" @fullstorydev/grpcurl \
     sbin'* -> jq' nocompile @jqlang/jq
-zinit as"null" wait light-mode depth"1" lucid for \
+zsh-defer zinit as"null" wait light-mode depth"1" lucid for \
         src"etc/git-extras-completion.zsh" \
         make"PREFIX=${ZPFX}" \
     tj/git-extras \
@@ -108,7 +114,13 @@ fi
 ####################################
 #      Plugin Configuration        #
 ####################################
-ZVM_VI_EDITOR="nvim --cmd 'let g:bare_mode=v:true' -c 'set wrap'" # zsh-vi-mode default editor
+function zvm_config() {
+    ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
+    ZVM_VI_EDITOR="nvim --cmd 'let g:bare_mode=v:true' -c 'set wrap'" # zsh-vi-mode default editor
+    # Force to update cursor shape
+    shape=$(zvm_cursor_style $ZVM_INSERT_MODE_CURSOR)
+    zvm_set_cursor $shape
+}
 
 #######################################
 #       Software Configuration        #
@@ -126,18 +138,14 @@ export EDITOR="nvim"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
 
-# Nodejs
+# nodejs
 export NPM_PREFIX=~/.npm # npm local prefix(not used by npm)
-
-# Load xmake profile
-[[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
 
 # mcfly
 export MCFLY_KEY_SCHEME=vim # Vim keybind
 export MCFLY_FUZZY=2        # Fuzzy match
 
 # fzf
-# Speedup search
 export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
 
 ############################
@@ -178,8 +186,8 @@ fi
 #       ZSH Configuration      #
 ################################
 autoload -U colors && colors
-autoload -U compinit
-compinit
+# Skip cache system check to improve startup performance
+zsh-defer compinit -C
 
 # Completion path
 export fpath=($fpath "${HOME}/.zsh/completion")
@@ -220,17 +228,18 @@ function bind_keys() {
     bindkey '^k' backward-delete-word
     bindkey '^[[Z' reverse-menu-complete
 }
+zsh-defer bind_keys
 
 #######################
 #    Post Init Hook   #
 #######################
-# Execute aftar zsh-vi-mode
-function zvm_after_init() {
-    bind_keys
+function source_profiles() {
+    [[ -f ~/.zsh/scripts/setup.sh ]] && source ~/.zsh/scripts/setup.sh
+    [[ -s "${HOME}/.xmake/profile" ]] && source "$HOME/.xmake/profile"
+    [[ -f "$HOME/.cargo/env" ]] && source $HOME/.cargo/env
 }
+zsh-defer source_profiles
+
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 export PATH="${HOME}/.zsh/bin:${HOME}/.bin:${HOME}/.local/bin:${GOPATH}/bin:${GOROOT}/bin:${NPM_PREFIX}/bin:/sbin:${PATH}"
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-[[ -f ~/.zsh/scripts/setup.sh ]] && source ~/.zsh/scripts/setup.sh
