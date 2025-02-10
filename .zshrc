@@ -185,9 +185,11 @@ fi
 ################################
 #       ZSH Configuration      #
 ################################
-autoload -U colors && colors
-# Skip cache system check to improve startup performance
-zsh-defer compinit -C
+autoload -U colors
+colors
+
+autoload -U compinit
+compinit
 
 # Completion path
 export fpath=($fpath "${HOME}/.zsh/completion")
@@ -198,6 +200,7 @@ zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}
 # Enable file color eval $(dircolors -b)
 export ZLSCOLORS="${LS_COLORS}"
 zmodload zsh/complist
+zstyle ':completion:*' menu select
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 
