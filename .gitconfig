@@ -46,11 +46,15 @@
     a = add
     la = log --pretty=oneline --all --graph --decorate
 	aa = add -A
+    am = add-modified
 	co = checkout
 	br = branch
 	ci = commit
 	st = status
 	rs = restore
+    rb = rebase
+    ph = push
+    phf = push --force-with-lease
     # git change-commits GIT_AUTHOR_NAME "old name" "new name"
     # git change-commits GIT_AUTHOR_EMAIL "old@email.com" "new@email.com" HEAD~10..HEAD
 	change-commits = "!f() { VAR1=$1; VAR='$'$1; OLD=$2; NEW=$3; echo \"Are you sure for replace $VAR  $OLD => $NEW ?(Y/N)\";read OK;if [ \"$OK\" = 'Y' ] ; then shift 3; git filter-branch  --env-filter \"if [ \\\"${VAR}\\\" = '$OLD' ]; then export $VAR1='$NEW';echo 'to $NEW'; fi\" $@; fi;};  f "
