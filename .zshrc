@@ -161,6 +161,7 @@ alias tm="tmux"
 alias g="git"
 alias grep="grep  --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}"
 alias py="python3"
+alias gdb="gdb -q"
 # diff on Darwin doesn't support --color
 if [[ "${MACHINE}" == "Linux" ]]; then
     alias diff="diff --color -u"
