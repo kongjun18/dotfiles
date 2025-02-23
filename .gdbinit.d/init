@@ -1,3 +1,15 @@
+# GDB configuraiton
+set history save
+set verbose off
+set print pretty on
+set print array off
+set print array-indexes on
+set python print-stack full
+set debuginfod enabled on
+set confirm off
+set breakpoint pending on
+set startup-quietly on
+
 # GDB dashboard configuraiton
 dashboard -style syntax_highlighting 'autumn'
 
