@@ -57,7 +57,13 @@ if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	zsh-defer zinit ice depth"1" wait lucid src'zsh-syntax-highlighting.zsh'
 	zsh-defer zinit light zsh-users/zsh-syntax-highlighting
 
-	zinit ice depth"1" wait lucid
+    # DO NOT LAZY LOAD zsh-vi-mode for the following reasons:
+    # 1. Override all keybindings and solutions in
+    #    https://github.com/jeffreytse/zsh-vi-mode?tab=readme-ov-file#execute-extra-commands
+    #    do not work.
+    # 2. Lazy loading only speeds up the creation of new sessions; in reality,
+    #    you still have to wait until zsh-vi-mode is loaded before you can use it.
+	zinit ice depth"1"
 	zinit light jeffreytse/zsh-vi-mode
 fi
 
@@ -114,13 +120,8 @@ fi
 ####################################
 #      Plugin Configuration        #
 ####################################
-function zvm_config() {
-    ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
-    ZVM_VI_EDITOR="nvim --cmd 'let g:bare_mode=v:true' -c 'set wrap'" # zsh-vi-mode default editor
-    # Force to update cursor shape
-    shape=$(zvm_cursor_style $ZVM_INSERT_MODE_CURSOR)
-    zvm_set_cursor $shape
-}
+ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
+ZVM_VI_EDITOR="nvim --cmd 'let g:bare_mode=v:true' -c 'set wrap'"
 
 #######################################
 #       Software Configuration        #
@@ -226,15 +227,9 @@ setopt HIST_BEEP                 # Beep when accessing nonexistent history.
 #######################
 #      Bindings       #
 #######################
-# Execute aftar zsh-vi-mode
-#
-# I don't know why bind keys directly doesn't work, while
-# binding keys in zvm_after_init works.
-function zvm_after_init() {
-    bindkey '^j' forward-word
-    bindkey '^k' backward-delete-word
-    bindkey '^[[Z' reverse-menu-complete
-}
+bindkey '^j' forward-word
+bindkey '^k' backward-delete-word
+bindkey '^[[Z' reverse-menu-complete
 
 #######################
 #    Post Init Hook   #
