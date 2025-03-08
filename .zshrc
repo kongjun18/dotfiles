@@ -101,7 +101,7 @@ zsh-defer zinit as"null" wait light-mode depth"1" lucid for \
         atclone"./autogen.sh && ./configure && make && cp --force ctags ${ZPFX}/bin/ctags" \
         atpull"%atclone" \
     universal-ctags/ctags
-zinit as"program" from"gh-r" wait lucid light-mode for \
+zinit as"program" from"gh-r" wait lucid light-mode bpick"*tar.gz" for \
         nocompletions \
         ver"nightly" \
         pick"*/bin/nvim" \
