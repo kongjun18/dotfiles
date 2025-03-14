@@ -228,9 +228,14 @@ setopt HIST_BEEP                 # Beep when accessing nonexistent history.
 #######################
 #      Bindings       #
 #######################
-bindkey '^j' forward-word
-bindkey '^k' backward-delete-word
-bindkey '^[[Z' reverse-menu-complete
+# Execute aftar zsh-vi-mode
+# I don't know why bind keys directly doesn't work, while
+# binding keys in zvm_after_init works.
+function zvm_after_init() {
+    bindkey '^j' forward-word
+    bindkey '^k' backward-delete-word
+    bindkey '^[[Z' reverse-menu-complete
+}
 
 #######################
 #    Post Init Hook   #
