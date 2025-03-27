@@ -214,7 +214,6 @@ setopt BANG_HIST                 # Treat the '!' character specially during expa
 setopt EXTENDED_HISTORY          # Write the history file in the ":start:elapsed;command" format.
 setopt INC_APPEND_HISTORY        # Write to the history file immediately, not when the shell exits.
 setopt SHARE_HISTORY             # Share history between all sessions.
-setopt HIST_EXPIRE_DUPS_FIRST    # Expire duplicate entries first when trimming history.
 setopt HIST_IGNORE_DUPS          # Don't record an entry that was just recorded again.
 setopt HIST_IGNORE_ALL_DUPS      # Delete old recorded entry if new entry is a duplicate.
 setopt HIST_FIND_NO_DUPS         # Do not display a line previously found.
@@ -223,6 +222,35 @@ setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history 
 setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
 setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
 setopt HIST_BEEP                 # Beep when accessing nonexistent history.
+setopt HIST_FCNTL_LOCK           # Achieve better performance and avoid history corruption on NFS.
+setopt HIST_NO_STORE             # Don't store history (fc -l) command.
+setopt HIST_NO_FUNCTIONS         # Don't store function definitions.
+
+# Only save successful commands into zsh history file, seeing
+# https://scarff.id.au/blog/2019/zsh-history-conditional-on-command-success/.
+
+# Prevent the command from being written to history before it's
+# executed; save it to LASTHIST instead.  Write it to history
+# in precmd.
+#
+# zsh hook called before a history line is saved.  See zshmisc(1).
+function zshaddhistory() {
+  # Remove line continuations since otherwise a "\" will eventually
+  # get written to history with no newline.
+  LASTHIST=${1//\\$'\n'/}
+  # Return value 2: "... the history line will be saved on the internal
+  # history list, but not written to the history file".
+  return 2
+}
+
+# zsh hook called before the prompt is printed.  See zshmisc(1).
+function precmd() {
+  # Write the last command if successful, using the history buffered by
+  # zshaddhistory().
+  if [[ $? == 0 && -n ${LASTHIST//[[:space:]\n]/} && -n $HISTFILE ]] ; then
+    print -sr -- ${=${LASTHIST%%'\n'}}
+  fi
+}
 
 
 #######################
