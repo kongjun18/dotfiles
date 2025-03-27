@@ -2,6 +2,8 @@
     path = ~/.git_account
 [includeIf "gitdir:~/.config/nvim/"]
     path = ~/.config/nvim/.gitconfig
+[includeIf "gitdir:/home/kongjun/projects/organics/"]
+    path = ~/.git_account.dh
 [core]
 	pager = delta
 	editor = nvim
@@ -46,13 +48,13 @@
     a = add
     la = log --pretty=oneline --all --graph --decorate
 	aa = add -A
-    am = add-modified
 	co = checkout
 	br = branch
 	ci = commit
 	st = status
 	rs = restore
     rb = rebase
+    mg = merge
     ph = push
     phf = push --force-with-lease
     # git change-commits GIT_AUTHOR_NAME "old name" "new name"
