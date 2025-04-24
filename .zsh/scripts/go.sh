@@ -19,6 +19,7 @@ esac
 
 case "${MACHINE}" in
     Linux) OS="linux";;
+    MSYS2) OS="linux";;
     Mac)   OS="mac";;
     *)     OS="UNKNOWN:${unameOut}"
 esac

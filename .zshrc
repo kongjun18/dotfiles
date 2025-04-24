@@ -25,7 +25,7 @@ case "${unameOut}" in
     Darwin*)    MACHINE=Mac;;
     CYGWIN*)    MACHINE=Cygwin;;
     MINGW*)     MACHINE=MinGw;;
-    MSYS_NT*)   MACHINE=Git;;
+    MSYS_NT*)   MACHINE=MSYS2;;
     *)          MACHINE="UNKNOWN:${unameOut}"
 esac
 
