@@ -19,9 +19,10 @@ esac
 
 case "${MACHINE}" in
     Linux) OS="linux";;
-    MSYS2) OS="linux";;
     Mac)   OS="mac";;
     *)     OS="UNKNOWN:${unameOut}"
+    echo "Failed to install Go for ${OS}"
+    exit 1
 esac
 
 echo "Finding latest version of Go for ${OS}-${ARCH}..."

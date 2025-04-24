@@ -23,9 +23,9 @@ case "${unameOut}" in
         export LINUX_RELEASE="$(cat /etc/os-release | grep '^ID=' | cut -d = -f 2)"
         ;;
     Darwin*)    MACHINE=Mac;;
-    CYGWIN*)    MACHINE=Cygwin;;
-    MINGW*)     MACHINE=MinGw;;
-    MSYS_NT*)   MACHINE=MSYS2;;
+    CYGWIN*)    MACHINE=Windows;;
+    MINGW*)     MACHINE=Windows;;
+    MSYS_NT*)   MACHINE=Windows;;
     *)          MACHINE="UNKNOWN:${unameOut}"
 esac
 
@@ -75,19 +75,23 @@ if ! exists gcc; then
         bash ~/.zsh/scripts/build-essential.sh
     fi
 fi
-[[ "${MACHINE}" == "Linux" ]] && pick_musl_on_linux='bpick*musl*'
+[[ "${MACHINE}" == "Linux" ]] && pick_musl_on_linux='bpick*linux-musl*' && pick_targz_on_linux="bpick*tar.gz"
+[[ "${MACHINE}" == "Windows" ]] && pick_msvc_on_windows='bpick*msvc*' && pick_win="bpick*windows*" && pick_zip_on_windows="*win*.zip"
 zinit light-mode for zdharma-continuum/zinit-annex-bin-gem-node
-zsh-defer zinit as"null" from"gh-r" wait light-mode lucid for \
+zsh-defer zinit as"program" from"gh-r" wait light-mode lucid for \
         atload'eval "$(mcfly init zsh)"' \
         sbin"**/mcfly" \
-    cantino/mcfly \
-    sbin"**/delta" ${pick_musl_on_linux} @dandavison/delta \
-    sbin"**/rg" @BurntSushi/ripgrep \
+    ${pick_msvc_on_windows} cantino/mcfly \
+    sbin"**/delta" ${pick_msvc_on_windows} ${pick_musl_on_linux} @dandavison/delta \
+    sbin"**/rg" ${pick_msvc_on_windows} @BurntSushi/ripgrep \
     sbin"**/fd" @sharkdp/fd \
-    ver"v12.1.2" sbin"**/tokei" @XAMPPRocky/tokei \
-    sbin"fzf" @junegunn/fzf \
-    sbin"grpcurl" @fullstorydev/grpcurl \
-    sbin'* -> jq' nocompile @jqlang/jq
+    ver"v12.1.2" sbin"**/tokei" ${pick_msvc_on_windows} @XAMPPRocky/tokei \
+    ver"v0.61.2" sbin"fzf" ${pick_win} @junegunn/fzf \
+    sbin"grpcurl" ${pick_win} @fullstorydev/grpcurl \
+    sbin'* -> jq' ${pick_win} nocompile @jqlang/jq \
+        nocompletions \
+        pick"*/bin/nvim" \
+    ${pick_zip_on_windows} ${pick_targz_on_linux} neovim/neovim
 zsh-defer zinit as"null" wait light-mode depth"1" lucid for \
         src"etc/git-extras-completion.zsh" \
         make"PREFIX=${ZPFX}" \
@@ -101,11 +105,6 @@ zsh-defer zinit as"null" wait light-mode depth"1" lucid for \
         atclone"./autogen.sh && ./configure && make && cp --force ctags ${ZPFX}/bin/ctags" \
         atpull"%atclone" \
     universal-ctags/ctags
-zinit as"program" from"gh-r" wait lucid light-mode bpick"*tar.gz" for \
-        nocompletions \
-        ver"nightly" \
-        pick"*/bin/nvim" \
-    neovim/neovim
 
 # ###########################################
 #       Powerlevel10k instant prompt        #
