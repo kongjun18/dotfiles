@@ -1,13 +1,14 @@
+# shellcheck disable=SC2034,SC2190,SC1094,SC2016,SC1091
+# shellcheck disable=SC2086,SC2296,SC1090,SC2153
+
 # Exit for non-interactive shell
-if [[ ${init} -ne 1 ]]; then
-    [[ $- != *i* ]] && return
-fi
+[[ $- != *i* ]] && return
 
 ############################
 #         Utilities        #
 ############################
 function exists() {
-    if command -v $1 &> /dev/null; then
+    if command -v "$1" &> /dev/null; then
         return 0
     else
         return 1
@@ -20,7 +21,8 @@ export ARCH
 case "${unameOut}" in
     Linux*)
         MACHINE=Linux
-        export LINUX_RELEASE="$(cat /etc/os-release | grep '^ID=' | cut -d = -f 2)"
+        export LINUX_RELEASE
+        LINUX_RELEASE="$(grep '^ID=' /etc/os-release | cut -d = -f 2)"
         ;;
     Darwin*)    MACHINE=Mac;;
     CYGWIN*)    MACHINE=Windows;;
@@ -38,11 +40,11 @@ if [[ ! -d "$HOME/.zsh/zinit" ]]; then
 fi
 if [[ -e "${HOME}/.zsh/zinit/zinit.zsh" ]]; then
 	typeset -A ZINIT=(
-		BIN_DIR  $HOME/.zsh/zinit/bin
-		HOME_DIR $HOME/.zsh/zinit
+		BIN_DIR  "$HOME/.zsh/zinit/bin"
+		HOME_DIR "$HOME/.zsh/zinit"
 		COMPINIT_OPTS -C
 	)
-	source $HOME/.zsh/zinit/zinit.zsh
+	source "$HOME/.zsh/zinit/zinit.zsh"
 
 	# Load zsh plugins
 	zinit ice depth"1"
