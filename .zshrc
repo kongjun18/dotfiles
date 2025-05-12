@@ -257,9 +257,8 @@ function precmd() {
 #######################
 #      Bindings       #
 #######################
-# Execute aftar zsh-vi-mode
-# I don't know why bind keys directly doesn't work, while
-# binding keys in zvm_after_init works.
+# Keybindings MUST be put in zvm_after_init which executes after zsh-vi-mode is loaded.
+# Otherwise, keybindings will be overridden by zsh-vi-mode.
 function zvm_after_init() {
     bindkey '^j' forward-word
     bindkey '^k' backward-delete-word
