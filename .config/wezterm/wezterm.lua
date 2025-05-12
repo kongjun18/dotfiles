@@ -2,6 +2,7 @@ local wezterm = require("wezterm")
 local action = wezterm.action
 local is_linux = string.find(wezterm.target_triple, "linux")
 local is_darwin = string.find(wezterm.target_triple, "darwin")
+local is_windows = string.find(wezterm.target_triple, "windows")
 local font_size_offset = is_linux and 0 or is_darwin and 3 or 0
 local config = {
 	-- FIXME: term = "wezterm" causes wrong cursor shape
@@ -142,4 +143,13 @@ if is_darwin then
 	table.insert(config.keys, { key = "v", mods = "CMD", action = action.PasteFrom("Clipboard") })
 end
 
+if is_windows then
+	local home = os.getenv("USERPROFILE")
+	config.default_prog = { 'cmd.exe', '/c', string.format('%s/scoop/apps/msys2/current/msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell zsh', home)}
+  -- Issue #1813: Error Failed to create window: The OpenGL implementation is
+  -- too old to work on Windows 11 in VirtualBox.
+	config.prefer_egl = true
+end
+
 return config
+

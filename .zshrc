@@ -191,6 +191,9 @@ colors
 autoload -U compinit
 compinit
 
+# zsh-vi-mode #159: zvm_cursor_style errors out every return
+setopt re_match_pcre
+
 # Completion path
 export fpath=($fpath "${HOME}/.zsh/completion")
 
