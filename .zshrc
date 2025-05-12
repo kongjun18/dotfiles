@@ -131,9 +131,6 @@ ZVM_VI_EDITOR="nvim --cmd 'let g:bare_mode=v:true' -c 'set wrap'"
 export GOPATH=~/.go
 export GOROOT=~/.go/go
 export GO111MODULE=on
-if [[ ! -e "$GOROOT/bin/go" ]]; then
-    zsh ~/.zsh/scripts/go.sh
-fi
 
 # Man pages
 export EDITOR="nvim"
