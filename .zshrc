@@ -78,28 +78,28 @@ if ! exists gcc; then
     fi
 fi
 [[ "${MACHINE}" == "Linux" ]] && pick_musl_on_linux='bpick*linux-musl*' && pick_targz_on_linux="bpick*tar.gz"
-[[ "${MACHINE}" == "Windows" ]] && pick_msvc_on_windows='bpick*msvc*' && pick_win="bpick*windows*" && pick_zip_on_windows="*win*.zip"
+[[ "${MACHINE}" == "Windows" ]] && pick_windows='bpick*windows*' && pick_zip_on_windows="bpick*win*.zip"
 zinit light-mode for zdharma-continuum/zinit-annex-bin-gem-node
 zsh-defer zinit as"program" from"gh-r" wait light-mode lucid for \
         atload'eval "$(mcfly init zsh)"' \
         sbin"**/mcfly" \
-    ${pick_msvc_on_windows} cantino/mcfly \
-    sbin"**/delta" ${pick_msvc_on_windows} ${pick_musl_on_linux} @dandavison/delta \
-    sbin"**/rg" ${pick_msvc_on_windows} @BurntSushi/ripgrep \
+    ${pick_windows} cantino/mcfly \
+    sbin"**/delta" ${pick_windows} ${pick_musl_on_linux} @dandavison/delta \
+    sbin"**/rg" ${pick_windows} @BurntSushi/ripgrep \
     sbin"**/fd" @sharkdp/fd \
-    ver"v12.1.2" sbin"**/tokei" ${pick_msvc_on_windows} @XAMPPRocky/tokei \
-    ver"v0.61.2" sbin"fzf" ${pick_win} @junegunn/fzf \
-    sbin"grpcurl" ${pick_win} @fullstorydev/grpcurl \
-    sbin'* -> jq' ${pick_win} nocompile @jqlang/jq \
-        nocompletions \
-        pick"*/bin/nvim" \
+    ver"v12.1.2" ${pick_windows} @XAMPPRocky/tokei \
+    ver"v0.61.2" sbin"fzf" ${pick_windows} @junegunn/fzf \
+    sbin"grpcurl" ${pick_windows} @fullstorydev/grpcurl \
+    ${pick_windows} nocompile @jqlang/jq \
+    nocompletions \
+    pick"*/bin/nvim" \
     ${pick_zip_on_windows} ${pick_targz_on_linux} neovim/neovim
 zsh-defer zinit as"null" wait light-mode depth"1" lucid for \
         src"etc/git-extras-completion.zsh" \
         make"PREFIX=${ZPFX}" \
     tj/git-extras \
-        cloneopts"--branch v5.3" \
-        atclone"make && cp --force lua ${ZPFX}/bin/lua" \
+    	cloneopts"--branch v5.3" \
+        atclone"make -j && cp --force lua ${ZPFX}/bin/lua" \
         atpull"%atclone" \
     lua/lua \
         atload'eval "$(lua z.lua --init zsh)"' \
