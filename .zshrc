@@ -150,6 +150,7 @@ export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
 ############################
 #           Alias          #
 ############################
+alias ll="ls -l"
 alias zb="z -b"
 alias yadm="yadm --yadm-repo ~/.local/share/yadm/repo.git"
 alias vi="nvim"
@@ -208,7 +209,7 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 
 # Configurate zsh history
-HISTFILE="$HOME/.zsh/zsh_history"
+HISTFILE="$HOME/Cloud/zsh_history"
 HISTSIZE=10000000
 SAVEHIST=10000000
 setopt BANG_HIST                 # Treat the '!' character specially during expansion.
