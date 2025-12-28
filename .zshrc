@@ -210,7 +210,11 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 
 # Configurate zsh history
-HISTFILE="$HOME/Cloud/zsh_history"
+if [[ -f "$HOME/Cloud/zsh_history" ]]; then
+    HISTFILE="$HOME/Cloud/zsh_history"
+else
+    HISTFILE="$HOME/.zsh/zsh_history"
+fi
 HISTSIZE=10000000
 SAVEHIST=10000000
 setopt BANG_HIST                 # Treat the '!' character specially during expansion.
