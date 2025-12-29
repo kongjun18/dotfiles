@@ -98,10 +98,6 @@ zsh-defer zinit as"null" wait light-mode depth"1" lucid for \
         src"etc/git-extras-completion.zsh" \
         make"PREFIX=${ZPFX}" \
     tj/git-extras \
-    	cloneopts"--branch v5.3" \
-        atclone"make -j && cp --force lua ${ZPFX}/bin/lua" \
-        atpull"%atclone" \
-    lua/lua \
         atload'eval "$(lua z.lua --init zsh)"' \
     skywind3000/z.lua \
         atclone"./autogen.sh && ./configure && make && cp --force ctags ${ZPFX}/bin/ctags" \
