@@ -81,6 +81,7 @@ fi
 [[ "${MACHINE}" == "Windows" ]] && pick_windows='bpick*windows*' && pick_zip_on_windows="bpick*win*.zip"
 zinit light-mode for zdharma-continuum/zinit-annex-bin-gem-node
 zsh-defer zinit as"program" from"gh-r" wait light-mode lucid for \
+    mv"uv* -> uv" pick"uv" ${pick_musl_on_linux} astral-sh/uv \
         atload'eval "$(mcfly init zsh)"' \
         sbin"**/mcfly" \
     ${pick_windows} cantino/mcfly \
