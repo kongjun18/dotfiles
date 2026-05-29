@@ -99,10 +99,7 @@ zsh-defer zinit as"null" wait light-mode depth"1" lucid for \
         make"PREFIX=${ZPFX}" \
     tj/git-extras \
         atload'eval "$(lua z.lua --init zsh)"' \
-    skywind3000/z.lua \
-        atclone"./autogen.sh && ./configure && make && cp --force ctags ${ZPFX}/bin/ctags" \
-        atpull"%atclone" \
-    universal-ctags/ctags
+    skywind3000/z.lua
 
 # ###########################################
 #       Powerlevel10k instant prompt        #
