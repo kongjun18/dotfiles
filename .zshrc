@@ -101,6 +101,8 @@ zsh-defer zinit as"null" wait light-mode depth"1" lucid for \
         atload'eval "$(lua z.lua --init zsh)"' \
     skywind3000/z.lua
 
+[[ ! -e ~/.tmux/plugins/tpm ]] && git clone --filter=blob:none https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+
 # ###########################################
 #       Powerlevel10k instant prompt        #
 #############################################
