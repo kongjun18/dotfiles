@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# repo="${1:?usage: sandbox-claude /path/to/repo [claude args...]}"
+# shift
+# repo="$(realpath "$repo")"
+home="$HOME"
+repo="$home/projects"
+
+# Ensure .claude.json exists (--bind requires the source to exist)
+touch "$home/.claude.json"
+
+args=(
+  --die-with-parent
+  --new-session
+  --unshare-pid
+  --unshare-ipc
+  --proc /proc
+  --dev /dev
+  --tmpfs /tmp
+  --tmpfs /var/tmp
+
+  # Read-only system
+  --ro-bind-try /usr /usr
+  --ro-bind-try /bin /bin
+  --ro-bind-try /lib /lib
+  --ro-bind-try /lib64 /lib64
+  --ro-bind-try /opt /opt
+  --ro-bind-try /etc/resolv.conf /etc/resolv.conf
+  --ro-bind-try /etc/hosts /etc/hosts
+  --ro-bind-try /etc/nsswitch.conf /etc/nsswitch.conf
+  --ro-bind-try /etc/ssl /etc/ssl
+  --ro-bind-try /etc/passwd /etc/passwd
+  --ro-bind-try /etc/group /etc/group
+
+  # Home directory skeleton (only parents needed for bind-try mount points)
+  --tmpfs /home
+  --dir "$home"
+  --dir "$home/.cache"
+  --dir "$home/.config"
+  --dir "$home/.config/git"
+  --dir "$home/.local"
+  --dir "$home/.local/bin"
+  --dir "$home/.local/share"
+
+  # Project repo (read-write)
+  --bind-try "$repo" "$repo"
+  --bind-try "/nvme" "/nvme"
+
+  # Git config
+  --bind-try "$home/.gitconfig" "$home/.gitconfig"
+  --bind-try "$home/.git_account" "$home/.git_account"
+  --bind-try "$home/.git_account.asu" "$home/.git_account.asu"
+  --bind-try "$home/.config/git/config" "$home/.config/git/config"
+  --bind-try "$home/.git-credentials" "$home/.git-credentials"
+
+  # Claude config
+  --bind-try "$home/.claude.json" "$home/.claude.json"
+  --bind-try "$home/.claude" "$home/.claude"
+
+  # SSH (read-only bind — no rsync copy needed)
+  --ro-bind-try "$home/.ssh" "$home/.ssh"
+
+  # AWS
+  --bind-try "$home/.aws" "$home/.aws"
+
+  # Shell rc files
+  --bind-try "$home/.bashrc" "$home/.bashrc"
+  --bind-try "$home/.bash_profile" "$home/.bash_profile"
+  --bind-try "$home/.profile" "$home/.profile"
+  --bind-try "$home/.zshenv" "$home/.zshenv"
+  --bind-try "$home/.zprofile" "$home/.zprofile"
+  --bind-try "$home/.zshrc" "$home/.zshrc"
+
+  # uv (Python)
+  --bind-try "$home/.cache/uv" "$home/.cache/uv"
+  --bind-try "$home/.config/uv" "$home/.config/uv"
+  --bind-try "$home/.local/share/uv" "$home/.local/share/uv"
+  --bind-try "$home/.local/bin/uv" "$home/.local/bin/uv"
+
+  # Go
+  --bind-try "$home/.cache/go-build" "$home/.cache/go-build"
+  --bind-try "$home/go" "$home/go"
+
+  # Environment
+  --setenv HOME "$home"
+  --setenv XDG_CACHE_HOME "$home/.cache"
+  --setenv XDG_CONFIG_HOME "$home/.config"
+  --setenv XDG_DATA_HOME "$home/.local/share"
+  --setenv PATH "$home/.local/bin:/usr/local/bin:/usr/bin:/bin"
+  --setenv UV_CACHE_DIR "$home/.cache/uv"
+  --setenv UV_TOOL_DIR "$home/.local/share/uv"
+  --setenv UV_TOOL_BIN_DIR "$home/.local/bin"
+  --setenv UV_MANAGED_PYTHON 1
+  --setenv AWS_CONFIG_FILE "$home/.aws/config"
+  --setenv AWS_SHARED_CREDENTIALS_FILE "$home/.aws/credentials"
+  --setenv GOPATH "$home/go"
+  --setenv GOCACHE "$home/.cache/go-build"
+  --setenv GOMODCACHE "$home/go/pkg/mod"
+  --setenv GOBIN "$home/.local/bin"
+
+  --chdir "$PWD"
+)
+
+# Forward optional auth env vars into the sandbox
+[[ -v ANTHROPIC_AUTH_TOKEN ]]  && args+=(--setenv ANTHROPIC_AUTH_TOKEN "$ANTHROPIC_AUTH_TOKEN")
+[[ -v ANTHROPIC_BASE_URL ]]   && args+=(--setenv ANTHROPIC_BASE_URL "$ANTHROPIC_BASE_URL")
+
+exec bwrap "${args[@]}" claude --permission-mode bypassPermissions "$@"

@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOME="$HOME"
+REPO="$HOME/projects"
+
+# Ensure codex config dir exists (--bind requires the source to exist)
+mkdir -p "$HOME/.codex"
+
+ARGS=(
+  --die-with-parent
+  --new-session
+  --unshare-pid
+  --unshare-ipc
+  --proc /proc
+  --dev /dev
+  --tmpfs /tmp
+  --tmpfs /var/tmp
+
+  # Read-only system
+  # SSL certificates (follow symlinks explicitly)
+  --ro-bind-try /etc/ssl/certs/ /etc/ssl/certs/
+  --ro-bind-try /usr/share/ca-certificates        /usr/share/ca-certificates
+  --ro-bind-try /usr/local/share/ca-certificates  /usr/local/share/ca-certificates
+  --ro-bind-try /etc/ca-certificates  /etc/ca-certificates/
+  --ro-bind-try /usr /usr
+  --ro-bind-try /bin /bin
+  --ro-bind-try /lib /lib
+  --ro-bind-try /lib64 /lib64
+  --ro-bind-try /opt /opt
+  --ro-bind-try /etc/resolv.conf /etc/resolv.conf
+  --ro-bind-try /etc/hosts /etc/hosts
+  --ro-bind-try /etc/nsswitch.conf /etc/nsswitch.conf
+  --ro-bind-try /etc/ssl /etc/ssl
+  --ro-bind-try /etc/passwd /etc/passwd
+  --ro-bind-try /etc/group /etc/group
+
+  # Home directory skeleton
+  --tmpfs /home
+  --dir "$HOME"
+  --dir "$HOME/.cache"
+  --dir "$HOME/.config"
+  --dir "$HOME/.config/git"
+  --dir "$HOME/.local"
+  --dir "$HOME/.local/bin"
+  --dir "$HOME/.local/share"
+
+  # Project repo (read-write)
+  --bind-try "$REPO" "$REPO"
+  --bind-try "/nvme" "/nvme"
+
+  # Git config
+  --bind-try "$HOME/.gitconfig"              "$HOME/.gitconfig"
+  --bind-try "$HOME/.git_account"            "$HOME/.git_account"
+  --bind-try "$HOME/.git_account.asu"        "$HOME/.git_account.asu"
+  --bind-try "$HOME/.config/git/config"      "$HOME/.config/git/config"
+  --bind-try "$HOME/.git-credentials"        "$HOME/.git-credentials"
+
+  # Codex config (replaces .claude.json / .claude)
+  --bind "$HOME/.codex" "$HOME/.codex"
+
+  # SSH (read-only)
+  --ro-bind-try "$HOME/.ssh" "$HOME/.ssh"
+
+  # AWS
+  --bind-try "$HOME/.aws" "$HOME/.aws"
+
+  # Shell RC files
+  --bind-try "$HOME/.bashrc"       "$HOME/.bashrc"
+  --bind-try "$HOME/.bash_profile" "$HOME/.bash_profile"
+  --bind-try "$HOME/.profile"      "$HOME/.profile"
+  --bind-try "$HOME/.zshenv"       "$HOME/.zshenv"
+  --bind-try "$HOME/.zprofile"     "$HOME/.zprofile"
+  --bind-try "$HOME/.zshrc"        "$HOME/.zshrc"
+
+  # uv (Python)
+  --bind-try "$HOME/.cache/uv"          "$HOME/.cache/uv"
+  --bind-try "$HOME/.config/uv"         "$HOME/.config/uv"
+  --bind-try "$HOME/.local/share/uv"    "$HOME/.local/share/uv"
+  --bind-try "$HOME/.local/bin/uv"      "$HOME/.local/bin/uv"
+
+  # Go
+  --bind-try "$HOME/.cache/go-build" "$HOME/.cache/go-build"
+  --bind-try "$HOME/go"              "$HOME/go"
+
+  # Node / npm (codex is Node-based)
+  --bind-try "$HOME/.npm"              "$HOME/.npm"
+  --bind-try "$HOME/.npmrc"            "$HOME/.npmrc"
+  --bind-try "$HOME/.nvm"              "$HOME/.nvm"
+  --bind-try "$HOME/.local/share/pnpm" "$HOME/.local/share/pnpm"
+
+  # Environment
+  --setenv HOME                          "$HOME"
+  --setenv XDG_CACHE_HOME                "$HOME/.cache"
+  --setenv XDG_CONFIG_HOME               "$HOME/.config"
+  --setenv XDG_DATA_HOME                 "$HOME/.local/share"
+  --setenv PATH                          "$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
+  --setenv UV_CACHE_DIR                  "$HOME/.cache/uv"
+  --setenv UV_TOOL_DIR                   "$HOME/.local/share/uv"
+  --setenv UV_TOOL_BIN_DIR               "$HOME/.local/bin"
+  --setenv UV_MANAGED_PYTHON             1
+  --setenv AWS_CONFIG_FILE               "$HOME/.aws/config"
+  --setenv AWS_SHARED_CREDENTIALS_FILE   "$HOME/.aws/credentials"
+  --setenv GOPATH                        "$HOME/go"
+  --setenv GOCACHE                       "$HOME/.cache/go-build"
+  --setenv GOMODCACHE                    "$HOME/go/pkg/mod"
+  --setenv GOBIN                         "$HOME/.local/bin"
+
+  --chdir "$PWD"
+)
+
+# Forward optional auth env vars into the sandbox
+[[ -v OPENAI_API_KEY ]]       && ARGS+=(--setenv OPENAI_API_KEY       "$OPENAI_API_KEY")
+[[ -v OPENAI_BASE_URL ]]      && ARGS+=(--setenv OPENAI_BASE_URL      "$OPENAI_BASE_URL")
+[[ -v ANTHROPIC_AUTH_TOKEN ]] && ARGS+=(--setenv ANTHROPIC_AUTH_TOKEN "$ANTHROPIC_AUTH_TOKEN")
+[[ -v ANTHROPIC_BASE_URL ]]   && ARGS+=(--setenv ANTHROPIC_BASE_URL   "$ANTHROPIC_BASE_URL")
+
+exec bwrap "${ARGS[@]}" codex --dangerously-bypass-approvals-and-sandbox "$@"
+# exec bwrap "${ARGS[@]}"  "$@"
