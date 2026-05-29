@@ -178,6 +178,7 @@ if [[ "${TERM_PROGRAM}" == "WezTerm" ]]; then
 else
 	alias icat="chafa"
 fi
+alias wezterm="wezterm --config-file=$HOME/.config/wezterm/wezterm.lua"
 
 ################################
 #       ZSH Configuration      #
