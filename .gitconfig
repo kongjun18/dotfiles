@@ -1,9 +1,5 @@
 [include]
     path = ~/.git_account
-[includeIf "gitdir:~/.config/nvim/"]
-    path = ~/.config/nvim/.gitconfig
-[includeIf "gitdir:/home/kongjun/projects/organics/"]
-    path = ~/.git_account.dh
 [core]
 	pager = delta
 	editor = nvim
