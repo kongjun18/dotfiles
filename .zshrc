@@ -72,13 +72,18 @@ fi
 ###################################
 #       Download Softwares        #
 ###################################
-if ! exists gcc; then
-    if [[ "${MACHINE}" == "Linux" ]]; then
-        bash ~/.zsh/scripts/build-essential.sh
-    fi
-fi
-[[ "${MACHINE}" == "Linux" ]] && pick_musl_on_linux='bpick*linux-musl*' && pick_targz_on_linux="bpick*tar.gz"
-[[ "${MACHINE}" == "Windows" ]] && pick_windows='bpick*windows*' && pick_zip_on_windows="bpick*win*.zip"
+[[ "${MACHINE}" == "Linux" ]] \
+    && pick_musl_on_linux='bpick*linux-musl*' \
+    && pick_targz_on_linux="bpick*tar.gz" \
+    && pick_ctags='bpickuctags-*-linux-x86_64.release.tar.xz' \
+    && ctags_repo="universal-ctags/ctags-nightly-build"
+[[ "${MACHINE}" == "Windows" ]] \
+    && pick_windows='bpick*windows*' \
+    && pick_zip_on_windows="bpick*win*.zip" \
+    && ctags_repo="universal-ctags/ctags-win32"
+[[ "${MACHINE}" == "Mac" ]] \
+    && ctags_repo="universal-ctags/ctags-nightly-build"
+
 zinit light-mode for zdharma-continuum/zinit-annex-bin-gem-node
 zsh-defer zinit as"program" from"gh-r" wait light-mode lucid for \
     mv"uv* -> uv" pick"uv" ${pick_musl_on_linux} astral-sh/uv \
@@ -94,7 +99,9 @@ zsh-defer zinit as"program" from"gh-r" wait light-mode lucid for \
     ${pick_windows} nocompile @jqlang/jq \
     nocompletions \
     pick"*/bin/nvim" \
-    ${pick_zip_on_windows} ${pick_targz_on_linux} neovim/neovim
+    ${pick_zip_on_windows} ${pick_targz_on_linux} neovim/neovim \
+    ${pick_ctags} pick"*/bin/*" \
+    ${ctags_repo}
 zsh-defer zinit as"null" wait light-mode depth"1" lucid for \
         src"etc/git-extras-completion.zsh" \
         make"PREFIX=${ZPFX}" \
